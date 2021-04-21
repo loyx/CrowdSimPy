@@ -65,7 +65,13 @@ class MACrowdSystem:
         for r in self.__robots:
             r.executeMissions()
         message = yield
-        return message
+        while True:
+            if message.status_code == 0:
+                self.senseMap.update(message.region, message.real_time, message.robot_category)
+                if self.senseMap.update_ratio > 0.8:  # todo senseMap update bug
+                    return message
+            else:
+                return message
 
     def needRepairing(self, message: Message):
         if message.status_code != 0 and self.senseMap.update_ratio > 0.8:

@@ -76,6 +76,7 @@ class Robot:
         self.C: RobotCategory = r_category
         self.init_reg = init_reg
         self.location: Point = init_loc
+        self.current_region = None  # todo current_region
 
         # state
         self.idleState = IdleState(self)

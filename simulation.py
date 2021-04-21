@@ -3,7 +3,9 @@ import collections
 from typing import Dict
 
 from robot import Robot
+from MASys import MACrowdSystem
 from realWorld import RealWorld
+from message import Message
 
 Event = collections.namedtuple("Event", "time robot action")
 
@@ -35,14 +37,25 @@ def physicalRobot(robot: Robot, start_time=0):
 
 class Simulator:
 
-    def __init__(self, p_robots):
+    def __init__(self, p_robots, ma_sys):
         self.events = queue.PriorityQueue()
         self.p_robots: Dict = p_robots
         self.realWorld = RealWorld()
+        self.MASys: MACrowdSystem = ma_sys
 
     def run(self, end_time):
         # init
 
+        # 预激robot
+        for p_robot in self.p_robots.values():
+            first_event = next(p_robot)
+            self.events.put(first_event)
+
+        # 预激MASys，并分配任务, 启动robot
+        sim_sys = self.MASys.run()
+        next(sim_sys)
+
+        # start simulation
         sim_time = 0
         robot: Robot
         while sim_time < end_time:
@@ -52,11 +65,13 @@ class Simulator:
 
             sim_time, robot, action = self.events.get()
 
-            # 这些操作发生在状态转化的那个瞬间
+            # 这些操作发生在状态转化的那个瞬间  # todo brokenState
             if robot.state == robot.movingState:
                 robot.sense()
             elif robot.state == robot.sensingState:
-                robot.submitTasks()
+                robot.submitTasks()  # todo other case
+                message = Message(0, robot.id, robot.C, robot.current_region, sim_time)
+                sim_sys.send(message)
 
             print("time:", sim_time, robot.id * '  ', robot)
             next_time = sim_time + self.realWorld.compute_duration(robot)
