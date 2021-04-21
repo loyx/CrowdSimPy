@@ -95,9 +95,10 @@ class Robot:
         self.ideal_finish_time: List[float] = [0]
 
     def __repr__(self):
-        return "Robot({}, {})".format(self.id, self.C)
+        return "Robot({}, {}, {})".format(self.id, self.C, self.state)
 
     """ robot actions """
+
     def assignTask(self, reg, task, used_sensor):
         ideal_time = self.idealFinishTime(reg, used_sensor)
 
@@ -145,6 +146,11 @@ class Robot:
         self.state.broken()
 
     """ utility functions """
+
+    @property
+    def isFinishMissions(self):
+        return self.current_cursor >= len(self.planned_path) and self.state == self.idleState
+
     @property
     def isBroken(self):
         return self.state == self.brokenState
