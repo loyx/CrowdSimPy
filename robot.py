@@ -1,3 +1,4 @@
+import itertools
 import numbers
 from abc import ABC, abstractmethod
 from typing import List
@@ -5,7 +6,7 @@ from typing import List
 from senseArea import Region, EuclideanDistance, Point
 from sensor import Sensor
 from RobotState import IdleState, PlaningState, MovingState, SensingState, BrokenState
-from message import Message
+# from message import Message
 
 
 def dataDiff(data1, data2):
@@ -87,8 +88,8 @@ class Robot:
         self.current_task_region = None
         self.current_cursor = 0
 
-        self.task_in_reg = {}
-        self.sensor_in_reg = {}
+        self.task_in_reg: List[List] = []
+        self.sensor_in_reg: List[List[Region]] = []
 
         self.planned_path: List[Region] = [init_reg]
         self.ideal_finish_time: List[float] = [0]
@@ -98,22 +99,27 @@ class Robot:
 
     """ robot actions """
     def assignTask(self, reg, task, used_sensor):
-        self.task_in_reg.setdefault(reg, []).append(task)
-        self.sensor_in_reg.setdefault(reg, []).append(used_sensor)
-        self.ideal_finish_time.append(self.arrivalTime(reg) + self.C.intraD(reg))
+        ideal_time = self.idealFinishTime(reg, used_sensor)
+
+        # 如果理想完成时间与之前相同，说明该任务与前一任务并发执行
+        if ideal_time == self.ideal_finish_time[-1]:
+            self.task_in_reg[-1].append(task)
+            self.sensor_in_reg[-1].append(used_sensor)
+        else:
+            self.task_in_reg.append([task])
+            self.sensor_in_reg.append([used_sensor])
+            self.ideal_finish_time.append(ideal_time)
 
         # state
         self.state.assignTask()
 
     def cancelPlan(self):
-        cancel_region = self.planned_path[self.current_cursor:]
         self.planned_path = self.planned_path[:self.current_cursor]
         self.ideal_finish_time = self.ideal_finish_time[:self.current_cursor]
+        self.task_in_reg = self.task_in_reg[:self.current_cursor]
+        self.sensor_in_reg = self.sensor_in_reg[:self.current_cursor]  # use GC
         self.current_cursor -= 1
-        for reg in cancel_region:
-            del self.task_in_reg[reg]
-            del self.sensor_in_reg[reg]
-        # todo 循环reg
+
         # state
         self.state.cancelPlan()
 
@@ -145,9 +151,9 @@ class Robot:
 
     def unfinishedTasks(self):
         unfinished = set()
-        for reg in self.planned_path[self.current_cursor:]:
-            for task in self.task_in_reg[reg]:
-                unfinished.add(task)
+        for tasks in self.task_in_reg[self.current_cursor:]:
+            for t in tasks:
+                unfinished.add(t)
         return unfinished
 
     def distBetweenRobot(self, r: 'Robot'):
@@ -157,10 +163,34 @@ class Robot:
         move_time = self.C.interD(self.planned_path[-1], reg) / self.C.v
         return self.ideal_finish_time[-1] + move_time
 
+    def possiblePlan(self, reg, task):
+        """
+        机器人在reg区域执行task的可能_时间点_和使用的传感器
+        """
+        adequate_sensors = set(itertools.takewhile(lambda s: task.adequateSensor(s), self.C.sensors))
+        return ((self.idealFinishTime(reg, s), s) for s in adequate_sensors)
+
+    def idealFinishTime(self, reg, sensor: Sensor):
+        """
+        机器人到reg区域使用sensor完成任务的理想时间
+        :param reg: 目标区域
+        :param sensor: 所使用的传感器
+        :return: 理想完成 _时间点_
+        """
+
+        # 因为机器人执行任务的流程一定是从上一区域移动到此区域，之后再完成任务
+        move_time = self.C.interD(self.planned_path[-1], reg) / self.C.v
+
+        check_init = self.planned_path[-1] == self.init_reg
+        if not check_init and move_time == 0 and sensor not in self.sensor_in_reg[reg]:
+            # 如果机器人目的区域仍是机器人之前的区域，且之前没有使用该传感器，且不是初始状态
+            # 则可以并行执行，理想完成时间点为之前的完成时间
+            return self.ideal_finish_time[-1]
+        return self.ideal_finish_time[-1] + self.C.intraD(reg) / self.C.v + move_time
+
     def moveDistance(self):
         dis = 0
         pre_reg = self.init_reg
         for reg in self.planned_path[2:]:
             dis += self.C.intraD(reg) + self.C.interD(pre_reg, reg)
         return dis
-

@@ -131,7 +131,7 @@ class BaseAlgorithm(ABC):
     @abstractmethod
     def allocationTasks(self):
         """
-        任务分配基算法
+        任务分配基算法，就地分配任务给机器人
         """
 
     def totalCov(self):
@@ -164,27 +164,24 @@ class GreedyBaseAlgor(BaseAlgorithm):
                     task_in_reg.setdefault(reg, []).append(task)
 
         for reg, tasks in task_in_reg.items():
-            t: Task
-            for t in tasks:
+            task: Task
+            for task in tasks:
                 u_max = 0
                 r_max = None
                 s_select = None
-                for r in self._robots:
-                    arrive_time = r.arrivalTime(reg)
-                    used_sensors = set(r.sensor_in_reg[reg])
-                    ade_sensors = set(itertools.takewhile(lambda s: t.adequateSensor(s), r.C.sensors))
-                    select_sensors = ade_sensors - used_sensors
-                    simple_times = self.allocationPlan.setdefault((t, reg, r), 0)
-                    if arrive_time not in t.timeRange or not select_sensors and simple_times < self.GAMMA:
+                for rob in self._robots:
+                    finish_time, select_sensors = min(rob.possiblePlan(reg, task))
+                    sample_times = self.allocationPlan.setdefault((task, reg, rob), 0)
+                    if finish_time not in task.timeRange or not select_sensors and sample_times < self.GAMMA:
                         continue
-                    u = self.DeltaUtility(reg, r, arrive_time)
+                    u = self.DeltaUtility(reg, rob, finish_time)
                     if u > u_max:
                         u_max = u
-                        r_max = r
+                        r_max = rob
                         s_select = select_sensors.pop()
                 if not r_max:
-                    r_max.assignTask(reg, t, s_select)
-                    self.allocationPlan[(t, reg, r_max)] += 1
+                    r_max.assignTask(reg, task, s_select)
+                    self.allocationPlan[(task, reg, r_max)] += 1
 
     def DeltaUtility(self, reg: Region, r: Robot, at: int):
         f1 = self.THETAS[0] * 1 / self.LAMBDAS[0]

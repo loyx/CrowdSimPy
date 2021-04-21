@@ -7,10 +7,14 @@ Point = collections.namedtuple("Point", "longitude latitude")
 
 
 def EuclideanDistance(p1: Point, p2: Point) -> float:
+    if p1 == p2:
+        return 0
     return sqrt((p1.longitude - p2.longitude) ** 2 + (p1.latitude - p1.latitude) ** 2)
 
 
 def ManhattanDistance(p1: Point, p2: Point) -> float:
+    if p1 == p2:
+        return 0
     return abs(p1.longitude - p2.longitude) + abs(p1.latitude - p2.latitude)
 
 
