@@ -53,13 +53,19 @@ class MACrowdSystem:
         self.__base_algorithm.allocationTasks()
         while len(self.__finished_tasks) != len(self.__tasks):
             # 执行感知任务
-            message = self.execMissions()
+            message = yield from self.execMissions()
             if self.needRepairing(message):
                 # 构建新的T和R
                 k = int(self.__repair_k * len(self.__robots))
                 new_tasks, new_robots = self.constructNewPlan(message, k)
                 self.__base_algorithm.new_allocationPlan(new_tasks, new_robots, self.senseMap)
                 self.__base_algorithm.allocationTasks()
+
+    def execMissions(self):
+        for r in self.__robots:
+            r.executeMissions()
+        message = yield
+        return message
 
     def needRepairing(self, message: Message):
         if message.status_code != 0 and self.senseMap.update_ratio > 0.8:
@@ -88,10 +94,6 @@ class MACrowdSystem:
             r.cancelPlan()
         new_tasks = list(reduce(operator.or_, [x.unfinishedTasks() for x in new_robots]))
         return new_tasks, new_robots
-
-    def execMissions(self) -> Message:
-        for r in self.__robots:
-            r.executeMissions()
 
     def decomposeTask(self, task: Task):
         assert not task.TR
