@@ -68,3 +68,7 @@ class SensingState(RobotState):
             self.robot.state = self.robot.movingState
         else:
             self.robot.state = self.robot.idleState
+
+
+class BrokenState(RobotState):
+    pass

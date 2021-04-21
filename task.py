@@ -62,7 +62,7 @@ class Task:
 
         self.TR: List[Region] = []
         self.finished_reg: Dict[int, bool] = {}
-        self.finished = False  # todo 明确任务完成状态
+        self.isFinished = False
 
     def __repr__(self):
         return "Task({}, {}, {}, {})".format(

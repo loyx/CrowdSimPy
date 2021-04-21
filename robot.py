@@ -4,7 +4,7 @@ from typing import List
 
 from senseArea import Region, EuclideanDistance, Point
 from sensor import Sensor
-from RobotState import IdleState, PlaningState, MovingState, SensingState
+from RobotState import IdleState, PlaningState, MovingState, SensingState, BrokenState
 from message import Message
 
 
@@ -81,7 +81,7 @@ class Robot:
         self.planingState = PlaningState(self)
         self.movingState = MovingState(self)
         self.sensingState = SensingState(self)
-        self.brokenState = None
+        self.brokenState = BrokenState(self)
         self.state = self.idleState
 
         self.current_task_region = None
@@ -135,9 +135,14 @@ class Robot:
         self.state.sense()
 
     def broken(self):
-        pass
+        # state
+        self.state.broken()
 
     """ utility functions """
+    @property
+    def isBroken(self):
+        return self.state == self.brokenState
+
     def unfinishedTasks(self):
         unfinished = set()
         for reg in self.planned_path[self.current_cursor:]:

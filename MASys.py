@@ -70,7 +70,9 @@ class MACrowdSystem:
     def constructNewPlan(self, message, k) -> Tuple[List[Task], List[Robot]]:
         assert message.status_code != 0
         if k == len(self.__robots):
-            return self.__tasks, self.__robots  # todo 去除已完成任务
+            new_task = list(filter(lambda t: not t.isFinished, self.__tasks))
+            new_robot = list(filter(lambda robot: not robot.isBroken, self.__robots))
+            return new_task, new_robot
 
         target_r = None
         for r in self.__robots:
@@ -155,6 +157,8 @@ class GreedyBaseAlgor(BaseAlgorithm):
     def allocationTasks(self):
         task_in_reg = {}
         for task in self._tasks:
+            if task.isFinished:
+                continue
             for reg in task.TR:
                 if not task.finished_reg[task.id]:
                     task_in_reg.setdefault(reg, []).append(task)
