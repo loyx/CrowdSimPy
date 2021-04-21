@@ -2,8 +2,9 @@ import numbers
 from abc import ABC, abstractmethod
 from typing import List
 
-from senseArea import Region, EuclideanDistance
+from senseArea import Region, EuclideanDistance, Point
 from sensor import Sensor
+from RobotState import IdleState, PlaningState, MovingState, SensingState
 from message import Message
 
 
@@ -68,16 +69,21 @@ class ConcreteRobot(RobotCategory):
 
 
 class Robot:
-    __Status = ["planing", "executing"]
 
-    def __init__(self, rid, r_category, init_reg):
+    def __init__(self, rid, r_category, init_reg, init_loc):
         self.id = rid
         self.C: RobotCategory = r_category
         self.init_reg = init_reg
+        self.location: Point = init_loc
 
-        self.location = None  # todo 明确机器人位置
+        # state
+        self.idleState = IdleState(self)
+        self.planingState = PlaningState(self)
+        self.movingState = MovingState(self)
+        self.sensingState = SensingState(self)
+        self.brokenState = None
+        self.state = self.idleState
 
-        self.status = "planing"
         self.current_task_region = None
         self.current_cursor = 0
 
@@ -90,9 +96,51 @@ class Robot:
     def __repr__(self):
         return "Robot({}, {})".format(self.id, self.C)
 
+    """ robot actions """
+    def assignTask(self, reg, task, used_sensor):
+        self.task_in_reg.setdefault(reg, []).append(task)
+        self.sensor_in_reg.setdefault(reg, []).append(used_sensor)
+        self.ideal_finish_time.append(self.arrivalTime(reg) + self.C.intraD(reg))
+
+        # state
+        self.state.assignTask()
+
+    def cancelPlan(self):
+        cancel_region = self.planned_path[self.current_cursor:]
+        self.planned_path = self.planned_path[:self.current_cursor]
+        self.ideal_finish_time = self.ideal_finish_time[:self.current_cursor]
+        self.current_cursor -= 1
+        for reg in cancel_region:
+            del self.task_in_reg[reg]
+            del self.sensor_in_reg[reg]
+        # todo 循环reg
+        # state
+        self.state.cancelPlan()
+
+    def executeMissions(self):
+        self.current_cursor += 1
+        self.current_task_region = self.planned_path[self.current_cursor]
+        # state
+        self.state.executeMissions()
+
+    def submitTasks(self):
+        self.current_cursor += 1
+        if self.current_cursor < len(self.planned_path):
+            self.current_task_region = self.planned_path[self.current_cursor]
+        # state
+        self.state.submitTask()
+
+    def sense(self):
+        # state
+        self.state.sense()
+
+    def broken(self):
+        pass
+
+    """ utility functions """
     def unfinishedTasks(self):
         unfinished = set()
-        for reg in self.planned_path[self.current_cursor : ]:
+        for reg in self.planned_path[self.current_cursor:]:
             for task in self.task_in_reg[reg]:
                 unfinished.add(task)
         return unfinished
@@ -100,19 +148,8 @@ class Robot:
     def distBetweenRobot(self, r: 'Robot'):
         return EuclideanDistance(self.location, r.location)
 
-    def execMissions(self):
-        self.status = "executing"
-        self.current_cursor += 1
-        self.current_task_region = self.planned_path[self.current_cursor]
-
-    def submitTasks(self):
-        assert self.status == "executing"
-        self.current_cursor += 1
-        self.current_task_region = self.planned_path[self.current_cursor]
-        return
-
     def arrivalTime(self, reg: Region):
-        move_time = self.C.interD(self.planned_path[-1], reg)/self.C.v
+        move_time = self.C.interD(self.planned_path[-1], reg) / self.C.v
         return self.ideal_finish_time[-1] + move_time
 
     def moveDistance(self):
@@ -122,19 +159,3 @@ class Robot:
             dis += self.C.intraD(reg) + self.C.interD(pre_reg, reg)
         return dis
 
-    def assigningTask(self, reg, task, used_sensor):
-        assert self.status == "planing"
-        self.task_in_reg.setdefault(reg, []).append(task)
-        self.sensor_in_reg.setdefault(reg, []).append(used_sensor)
-        self.ideal_finish_time.append(self.arrivalTime(reg) + self.C.intraD(reg))
-
-    def cancelPlan(self):
-        # self.__Status = Robot.__Status[0]
-        # self.unfinished_tasks.clear()
-        pass
-
-
-class RobotGenerator:
-
-    def __init__(self):
-        pass

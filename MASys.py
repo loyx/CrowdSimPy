@@ -57,7 +57,7 @@ class MACrowdSystem:
             if self.needRepairing(message):
                 # 构建新的T和R
                 k = int(self.__repair_k * len(self.__robots))
-                new_tasks, new_robots = self.constructNewRange(message, k)
+                new_tasks, new_robots = self.constructNewPlan(message, k)
                 self.__base_algorithm.new_allocationPlan(new_tasks, new_robots, self.senseMap)
                 self.__base_algorithm.allocationTasks()
 
@@ -67,10 +67,11 @@ class MACrowdSystem:
         else:
             return False
 
-    def constructNewRange(self, message, k) -> Tuple[List[Task], List[Robot]]:
+    def constructNewPlan(self, message, k) -> Tuple[List[Task], List[Robot]]:
         assert message.status_code != 0
         if k == len(self.__robots):
             return self.__tasks, self.__robots  # todo 去除已完成任务
+
         target_r = None
         for r in self.__robots:
             if r.id == message.robot_id:
@@ -79,13 +80,16 @@ class MACrowdSystem:
         most_near = queue.PriorityQueue(k)
         for r in self.__robots:
             most_near.put((target_r.distBetweenRobot(r), r))
+
         new_robots: List[Robot] = [t[1] for t in most_near.queue]
+        for r in new_robots:
+            r.cancelPlan()
         new_tasks = list(reduce(operator.or_, [x.unfinishedTasks() for x in new_robots]))
         return new_tasks, new_robots
 
     def execMissions(self) -> Message:
         for r in self.__robots:
-            r.execMissions()
+            r.executeMissions()
 
     def decomposeTask(self, task: Task):
         assert not task.TR
@@ -175,7 +179,7 @@ class GreedyBaseAlgor(BaseAlgorithm):
                         r_max = r
                         s_select = select_sensors.pop()
                 if not r_max:
-                    r_max.assigningTask(reg, t, s_select)
+                    r_max.assignTask(reg, t, s_select)
                     self.allocationPlan[(t, reg, r_max)] += 1
 
     def DeltaUtility(self, reg: Region, r: Robot, at: int):
