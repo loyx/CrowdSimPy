@@ -123,7 +123,7 @@ class Robot:
         self.current_cursor -= 1
 
         # state
-        self.state.cancelPlan()
+        self.state.cancelPlan()  # todo bug: cancelPlan in SensingState
 
     def executeMissions(self):
         self.current_cursor += 1

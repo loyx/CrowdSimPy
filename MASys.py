@@ -69,7 +69,7 @@ class MACrowdSystem:
         while True:
             if message.status_code == 0:
                 self.senseMap.update(message.region, message.real_time, message.robot_category)
-                if self.senseMap.update_ratio > 0.8:  # todo senseMap update bug
+                if self.senseMap.update_ratio >= 0.8:
                     return message
             else:
                 return message

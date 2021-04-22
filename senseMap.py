@@ -32,6 +32,7 @@ class SenseMap:
         self.Regions: List[Region] = regs
         self.TS: List[TimeSlot] = ts
         self.RC: List[RobotCategory] = rc
+        self.cellNum = self.size[0]*self.size[1]*self.size[2]
 
         self.__map: Dict[MapPoint, tuple] = {}
         self.__prior_map: Dict[MapPoint, int] = {}
@@ -43,13 +44,13 @@ class SenseMap:
         self.UPDATE_KAPPA = kappa
 
         # updating attribute
-        self.__history_len = math.inf
+        self.__history_len = int(self.cellNum * 0.8)
         self.__history: List[Optional[History]] = []
         self.update_times = 0
 
     @property
     def update_ratio(self):
-        return self.update_times / (self.size[0]*self.size[1]*self.size[2])
+        return self.update_times / self.cellNum
 
     def __repr__(self):
         return f"SenseMap({self.size})"
