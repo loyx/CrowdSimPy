@@ -99,7 +99,7 @@ class MACrowdSystem:
 
         new_robots: List[Robot] = [t[1] for t in most_near.queue]
         for r in new_robots:
-            r.cancelPlan()
+            r.cancelPlan(message.real_time)
         new_tasks = list(reduce(operator.or_, [x.unfinishedTasks() for x in new_robots]))
         return new_tasks, new_robots
 
