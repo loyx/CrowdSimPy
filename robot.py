@@ -1,11 +1,10 @@
 import numbers
 from abc import ABC, abstractmethod
-from typing import List
+from typing import List, Optional
 
 from senseArea import Region, EuclideanDistance, Point
 from sensor import Sensor
 from RobotState import IdleState, MovingState, SensingState, BrokenState
-# from message import Message
 
 
 def dataDiff(data1, data2):
@@ -100,7 +99,7 @@ class Robot:
         self.current_region: Region = init_reg
 
         # dynamic task info
-        self.current_task_region = None
+        self.current_task_region: Optional[Region] = None
         self.current_cursor = 0
 
         # planed task info
