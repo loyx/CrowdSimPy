@@ -20,7 +20,7 @@ class RobotState(ABC):
     def assignTask(self, reg, task, used_sensor):
         raise StateError(f"{type(self).__name__} cannot assignTask()")
 
-    def cancelPlan(self, time):
+    def cancelPlan(self, time, tr):
         raise StateError(f"{type(self).__name__} cannot cancelPlan()")
 
     def executeMissions(self):
@@ -68,14 +68,14 @@ class IdleState(RobotState):
 
 class MovingState(RobotState):
 
-    def cancelPlan(self, time):
+    def cancelPlan(self, time, tr):
         # update location
         current_cursor = self.robot.current_cursor
         start_reg = self.robot.planned_path[current_cursor-1]
         end_reg = self.robot.current_task_region
         assert end_reg == self.robot.planned_path[current_cursor-1]
         percentage = (time-self.robot.finish_time[current_cursor-1]) / self.robot.time_used[current_cursor]
-        self.robot.current_region = self.robot.C.getLocation(start_reg, end_reg, percentage)
+        self.robot.current_region = self.robot.C.getLocation(start_reg, end_reg, percentage, tr)
         self.robot.location = self.robot.current_region.randomLoc()
 
         self.robot.clearRecord(self.robot.current_cursor)
@@ -100,7 +100,7 @@ class SensingState(RobotState):
 
         # self.robot.state = self.robot.sensingState
 
-    def cancelPlan(self, time):
+    def cancelPlan(self, time, tr):
         assert self.robot.current_region == self.robot.current_task_region
         self.robot.location = self.robot.current_region.randomLoc()
         self.robot.clearRecord(self.robot.current_cursor + 1)

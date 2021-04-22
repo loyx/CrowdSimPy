@@ -55,28 +55,14 @@ class RobotCategory(ABC):
         """
 
     @abstractmethod
-    def getLocation(self, reg1, reg2, percentage) -> Region:
+    def getLocation(self, reg1, reg2, percentage, tr: List[Region]) -> Region:
         """
+        :param tr:
         :param reg1:
         :param reg2:
         :param percentage:
         :return:
         """
-
-
-class ConcreteRobot(RobotCategory):
-    """
-    具体的机器人类型
-    """
-
-    def getLocation(self, reg1, reg2, percentage) -> Region:
-        pass
-
-    def intraD(self, reg: Region) -> float:
-        pass
-
-    def interD(self, reg1: Region, reg2: Region) -> float:
-        pass
 
 
 class Robot:
@@ -120,9 +106,9 @@ class Robot:
         # state
         self.state.assignTask(reg, task, used_sensor)
 
-    def cancelPlan(self, time):
+    def cancelPlan(self, time, tr):
         # state
-        self.state.cancelPlan(time)
+        self.state.cancelPlan(time, tr)
 
     def executeMissions(self):
         # state

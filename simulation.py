@@ -37,10 +37,10 @@ def physicalRobot(robot: Robot, start_time=0):
 
 class Simulator:
 
-    def __init__(self, p_robots, ma_sys):
+    def __init__(self, p_robots, ma_sys, real_world):
         self.events: List[Event] = []
         self.p_robots: Dict = p_robots
-        self.realWorld = RealWorld()
+        self.realWorld: RealWorld = real_world
         self.MASys: MACrowdSystem = ma_sys
 
     def run(self, end_time):
