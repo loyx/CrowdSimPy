@@ -1,6 +1,7 @@
 import collections
 from math import sqrt
 from typing import *
+import random
 
 
 Point = collections.namedtuple("Point", "longitude latitude")
@@ -34,6 +35,11 @@ class Area:
     def inRange(self, point: Point):
         return self.startPoint[0] < point[0] < self.endPoint[0] \
                and self.startPoint[1] < point[1] < self.endPoint[1]
+
+    def randomLoc(self) -> Point:
+        p1 = random.uniform(self.startPoint[0], self.endPoint[0])
+        p2 = random.uniform(self.startPoint[1], self.endPoint[1])
+        return Point(p1, p2)
 
     def __contains__(self, item):
         return isinstance(item, Point) and self.inRange(item)

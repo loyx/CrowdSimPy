@@ -20,7 +20,7 @@ class RobotState(ABC):
     def assignTask(self, reg, task, used_sensor):
         raise StateError(f"{type(self).__name__} cannot assignTask()")
 
-    def cancelPlan(self):
+    def cancelPlan(self, time):
         raise StateError(f"{type(self).__name__} cannot cancelPlan()")
 
     def executeMissions(self):
@@ -42,13 +42,14 @@ class IdleState(RobotState):
         ideal_time = self.robot.idealFinishTime(reg, used_sensor)
 
         # 如果理想完成时间与之前相同，说明该任务与前一任务并发执行
-        if ideal_time == self.robot.ideal_finish_time[-1]:
+        if ideal_time == self.robot.finish_time[-1]:
             self.robot.task_in_reg[-1].append(task)
             self.robot.sensor_in_reg[-1].append(used_sensor)
         else:
             self.robot.task_in_reg.append([task])
             self.robot.sensor_in_reg.append([used_sensor])
-            self.robot.ideal_finish_time.append(ideal_time)
+            self.robot.time_used.append(ideal_time-self.robot.finish_time[-1])
+            self.robot.finish_time.append(ideal_time)
 
         # self.robot.state = self.robot.idleState
 
@@ -60,7 +61,16 @@ class IdleState(RobotState):
 
 class MovingState(RobotState):
 
-    def cancelPlan(self):
+    def cancelPlan(self, time):
+        # update location
+        current_cursor = self.robot.current_cursor
+        start_reg = self.robot.planned_path[current_cursor-1]
+        end_reg = self.robot.current_task_region
+        assert end_reg == self.robot.planned_path[current_cursor-1]
+        percentage = (time-self.robot.finish_time[current_cursor-1]) / self.robot.time_used[current_cursor]
+        self.robot.current_region = self.robot.C.getLocation(start_reg, end_reg, percentage)
+        self.robot.location = self.robot.current_region.randomLoc()
+
         self.robot.clearRecord(self.robot.current_cursor)
         self.robot.current_cursor -= 1
         self.robot.current_task_region = None
@@ -68,6 +78,8 @@ class MovingState(RobotState):
         self.robot.state = self.robot.idleState
 
     def sense(self):
+        self.robot.current_region = self.robot.current_task_region
+        self.robot.location = self.robot.current_region.randomLoc()
         self.robot.state = self.robot.sensingState
 
 
@@ -79,11 +91,14 @@ class SensingState(RobotState):
         # 不同于idleState的分配任务，SensingState只能在之后分配任务，不能并发执行
         self.robot.task_in_reg.append([task])
         self.robot.sensor_in_reg.append([used_sensor])
-        self.robot.ideal_finish_time.append(ideal_time)
+        self.robot.time_used.append(ideal_time - self.robot.finish_time[-1])
+        self.robot.finish_time.append(ideal_time)
 
         # self.robot.state = self.robot.sensingState
 
-    def cancelPlan(self):
+    def cancelPlan(self, time):
+        assert self.robot.current_region == self.robot.current_task_region
+        self.robot.location = self.robot.current_region.randomLoc()
         self.robot.clearRecord(self.robot.current_cursor + 1)
 
         # self.robot.state = self.robot.sensingState

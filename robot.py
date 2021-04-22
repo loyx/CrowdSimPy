@@ -55,11 +55,23 @@ class RobotCategory(ABC):
         :return: 区域内移动距离
         """
 
+    @abstractmethod
+    def getLocation(self, reg1, reg2, percentage) -> Region:
+        """
+        :param reg1:
+        :param reg2:
+        :param percentage:
+        :return:
+        """
+
 
 class ConcreteRobot(RobotCategory):
     """
     具体的机器人类型
     """
+
+    def getLocation(self, reg1, reg2, percentage) -> Region:
+        pass
 
     def intraD(self, reg: Region) -> float:
         pass
@@ -84,8 +96,8 @@ class Robot:
         self.state = self.idleState
 
         # dynamic location info
-        self.location: Point = init_loc  # todo current_region
-        self.current_region = init_reg  # todo current_region
+        self.location: Point = init_loc
+        self.current_region: Region = init_reg
 
         # dynamic task info
         self.current_task_region = None
@@ -96,7 +108,8 @@ class Robot:
         self.sensor_in_reg: List[List[Region]] = []
         self.planned_path: List[Region] = [init_reg]
         # 约定；当submit后，更新为real_finish_time
-        self.ideal_finish_time: List[float] = [0]
+        self.finish_time: List[float] = [0]
+        self.time_used: List[float] = [0]
 
     def __repr__(self):
         return "Robot({}, {}, {})".format(self.id, self.C, self.state)
@@ -106,9 +119,9 @@ class Robot:
         # state
         self.state.assignTask(reg, task, used_sensor)
 
-    def cancelPlan(self):
+    def cancelPlan(self, time):
         # state
-        self.state.cancelPlan()
+        self.state.cancelPlan(time)
 
     def executeMissions(self):
         # state
@@ -129,18 +142,18 @@ class Robot:
     """ utility functions """
     def clearRecord(self, cursor):
         self.planned_path = self.planned_path[:cursor]
-        self.ideal_finish_time = self.ideal_finish_time[:cursor]
+        self.finish_time = self.finish_time[:cursor]
         self.task_in_reg = self.task_in_reg[:cursor]
         self.sensor_in_reg = self.sensor_in_reg[:cursor]  # use GC
 
     def canFinishTaskInTime(self, time):
         tc = self.current_cursor
-        self.ideal_finish_time[tc] = time  # 更新real time，但这让该函数承担了不属于它的职责。todo 优化设计
+        self.finish_time[tc] = time  # 更新real time，但这让该函数承担了不属于它的职责。todo 优化设计
 
         if self.isFinishMissions:  # 如果已经完成所有任务，则返回True
             return True
-        finish_a_task_time = self.ideal_finish_time[tc] - self.ideal_finish_time[tc-1]
-        if time + finish_a_task_time > self.ideal_finish_time[tc]:
+        finish_a_task_time = self.finish_time[tc] - self.finish_time[tc - 1]
+        if time + finish_a_task_time > self.finish_time[tc]:
             return False
         else:
             return True
@@ -165,7 +178,7 @@ class Robot:
 
     def arrivalTime(self, reg: Region):
         move_time = self.C.interD(self.planned_path[-1], reg) / self.C.v
-        return self.ideal_finish_time[-1] + move_time
+        return self.finish_time[-1] + move_time
 
     def possiblePlan(self, reg, task):
         """
@@ -187,14 +200,14 @@ class Robot:
 
         # 当机器人为sensingState时，不能并发分配任务
         if self.state == self.sensingState:
-            return self.ideal_finish_time[-1] + self.C.intraD(reg) / self.C.v + move_time
+            return self.finish_time[-1] + self.C.intraD(reg) / self.C.v + move_time
 
         check_init = self.planned_path[-1] == self.init_reg
         if not check_init and move_time == 0 and sensor not in self.sensor_in_reg[reg]:
             # 如果机器人目的区域仍是机器人之前的区域，且之前没有使用该传感器，且不是初始状态
             # 则可以并行执行，理想完成时间点为之前的完成时间
-            return self.ideal_finish_time[-1]
-        return self.ideal_finish_time[-1] + self.C.intraD(reg) / self.C.v + move_time
+            return self.finish_time[-1]
+        return self.finish_time[-1] + self.C.intraD(reg) / self.C.v + move_time
 
     def moveDistance(self):
         dis = 0
