@@ -72,11 +72,10 @@ class ConcreteRobot(RobotCategory):
 class Robot:
 
     def __init__(self, rid, r_category, init_reg, init_loc):
+        # static info
         self.id = rid
         self.C: RobotCategory = r_category
         self.init_reg = init_reg
-        self.location: Point = init_loc
-        self.current_region = None  # todo current_region
 
         # state
         self.idleState = IdleState(self)
@@ -85,13 +84,19 @@ class Robot:
         self.brokenState = BrokenState(self)
         self.state = self.idleState
 
+        # dynamic location info
+        self.location: Point = init_loc  # todo current_region
+        self.current_region = init_reg  # todo current_region
+
+        # dynamic task info
         self.current_task_region = None
         self.current_cursor = 0
 
+        # planed task info
         self.task_in_reg: List[List] = []
         self.sensor_in_reg: List[List[Region]] = []
         self.planned_path: List[Region] = [init_reg]
-        # todo 约定，当submit后，更新为real_finish_time
+        # 约定；当submit后，更新为real_finish_time
         self.ideal_finish_time: List[float] = [0]
 
     def __repr__(self):
@@ -131,6 +136,10 @@ class Robot:
 
     def canFinishTaskInTime(self, time):
         tc = self.current_cursor
+        self.ideal_finish_time[tc] = time  # 更新real time，但这让该函数承担了不属于它的职责。todo 优化设计
+
+        if self.isFinishMissions:  # 如果已经完成所有任务，则返回True
+            return True
         finish_a_task_time = self.ideal_finish_time[tc] - self.ideal_finish_time[tc-1]
         if time + finish_a_task_time > self.ideal_finish_time[tc]:
             return False
