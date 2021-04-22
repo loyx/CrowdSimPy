@@ -48,7 +48,7 @@ class RobotCategory(ABC):
         """
 
     @abstractmethod
-    def intraD(self, reg: Region) -> float:  # todo sensor type affect
+    def intraD(self, reg: Region) -> float:  # todo 优化：sensor type affect
         """
         此类机器人在reg内执行感知任务的移动距离
         :param reg: 目标区域
@@ -148,7 +148,7 @@ class Robot:
 
     def canFinishTaskInTime(self, time):
         tc = self.current_cursor
-        self.finish_time[tc] = time  # 更新real time，但这让该函数承担了不属于它的职责。todo 优化设计
+        self.finish_time[tc] = time  # 更新real time，但这让该函数承担了不属于它的职责。todo 优化；设计
 
         if self.isFinishMissions:  # 如果已经完成所有任务，则返回True
             return True

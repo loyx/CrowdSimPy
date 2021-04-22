@@ -18,7 +18,7 @@ def physicalRobot(robot: Robot, start_time=0):
     # 所有的robot都应从0开始计时，由Simulator估计moving时间
 
     assert robot.state == robot.movingState
-    while not robot.isFinishMissions:  # todo brokenState
+    while not robot.isFinishMissions:  # todo 优化：brokenState
         # 因为robot的激活和规划由MASys完成，因而此循环里只有moving和sensing状态
         # 同时，我们应当假设idle，planing状态不花费时间
 
@@ -67,7 +67,7 @@ class Simulator:
             # sim_time, robot, action = self.events.get()
             sim_time, robot, action = heapq.heappop(self.events)
 
-            # 这些操作发生在状态转化的那个瞬间  # todo brokenState
+            # 这些操作发生在状态转化的那个瞬间  # todo 优化：brokenState
             if robot.state == robot.movingState:
                 if self.realWorld.canSense(robot):
                     robot.sense()
