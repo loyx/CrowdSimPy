@@ -5,7 +5,7 @@ from typing import List
 
 from senseArea import Region, EuclideanDistance, Point
 from sensor import Sensor
-from RobotState import IdleState, PlaningState, MovingState, SensingState, BrokenState
+from RobotState import IdleState, MovingState, SensingState, BrokenState
 # from message import Message
 
 
@@ -80,7 +80,6 @@ class Robot:
 
         # state
         self.idleState = IdleState(self)
-        self.planingState = PlaningState(self)
         self.movingState = MovingState(self)
         self.sensingState = SensingState(self)
         self.brokenState = BrokenState(self)
@@ -91,50 +90,27 @@ class Robot:
 
         self.task_in_reg: List[List] = []
         self.sensor_in_reg: List[List[Region]] = []
-
         self.planned_path: List[Region] = [init_reg]
+        # todo 约定，当submit后，更新为real_finish_time
         self.ideal_finish_time: List[float] = [0]
 
     def __repr__(self):
         return "Robot({}, {}, {})".format(self.id, self.C, self.state)
 
     """ robot actions """
-
     def assignTask(self, reg, task, used_sensor):
-        ideal_time = self.idealFinishTime(reg, used_sensor)
-
-        # 如果理想完成时间与之前相同，说明该任务与前一任务并发执行
-        if ideal_time == self.ideal_finish_time[-1]:
-            self.task_in_reg[-1].append(task)
-            self.sensor_in_reg[-1].append(used_sensor)
-        else:
-            self.task_in_reg.append([task])
-            self.sensor_in_reg.append([used_sensor])
-            self.ideal_finish_time.append(ideal_time)
-
         # state
-        self.state.assignTask()
+        self.state.assignTask(reg, task, used_sensor)
 
     def cancelPlan(self):
-        self.planned_path = self.planned_path[:self.current_cursor]
-        self.ideal_finish_time = self.ideal_finish_time[:self.current_cursor]
-        self.task_in_reg = self.task_in_reg[:self.current_cursor]
-        self.sensor_in_reg = self.sensor_in_reg[:self.current_cursor]  # use GC
-        self.current_cursor -= 1
-
         # state
-        self.state.cancelPlan()  # todo bug: cancelPlan in SensingState
+        self.state.cancelPlan()
 
     def executeMissions(self):
-        self.current_cursor += 1
-        self.current_task_region = self.planned_path[self.current_cursor]
         # state
         self.state.executeMissions()
 
     def submitTasks(self):
-        self.current_cursor += 1
-        if self.current_cursor < len(self.planned_path):
-            self.current_task_region = self.planned_path[self.current_cursor]
         # state
         self.state.submitTask()
 
@@ -147,6 +123,12 @@ class Robot:
         self.state.broken()
 
     """ utility functions """
+    def clearRecord(self, cursor):
+        self.planned_path = self.planned_path[:cursor]
+        self.ideal_finish_time = self.ideal_finish_time[:cursor]
+        self.task_in_reg = self.task_in_reg[:cursor]
+        self.sensor_in_reg = self.sensor_in_reg[:cursor]  # use GC
+
     def canFinishTaskInTime(self, time):
         tc = self.current_cursor
         finish_a_task_time = self.ideal_finish_time[tc] - self.ideal_finish_time[tc-1]
@@ -186,7 +168,7 @@ class Robot:
 
     def idealFinishTime(self, reg, sensor: Sensor):
         """
-        机器人到reg区域使用sensor完成任务的理想时间
+        机器人到reg区域使用sensor完成任务的理想时间，具体情况与robot状态有关
         :param reg: 目标区域
         :param sensor: 所使用的传感器
         :return: 理想完成 _时间点_
@@ -194,6 +176,10 @@ class Robot:
 
         # 因为机器人执行任务的流程一定是从上一区域移动到此区域，之后再完成任务
         move_time = self.C.interD(self.planned_path[-1], reg) / self.C.v
+
+        # 当机器人为sensingState时，不能并发分配任务
+        if self.state == self.sensingState:
+            return self.ideal_finish_time[-1] + self.C.intraD(reg) / self.C.v + move_time
 
         check_init = self.planned_path[-1] == self.init_reg
         if not check_init and move_time == 0 and sensor not in self.sensor_in_reg[reg]:

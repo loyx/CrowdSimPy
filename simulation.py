@@ -45,7 +45,6 @@ class Simulator:
 
     def run(self, end_time):
         # init
-
         # 预激robot
         for p_robot in self.p_robots.values():
             first_event = next(p_robot)
@@ -102,6 +101,9 @@ class Simulator:
 
                 # 删除自修复的robot的event
                 for r in need_repair_robots:
+                    # 当robot处于sensingState时，证明这是一次热自修复，不需要删除events
+                    if r.state == r.sensingState:
+                        continue
                     for index, event in enumerate(self.events):
                         # 这里必须使用id判断相等，因为一个robot被多个对象引用
                         if r == event.robot:
@@ -111,6 +113,9 @@ class Simulator:
 
                 # 构建新的robot协程，并更新记录和预激
                 for r in need_repair_robots:
+                    # 当robot处于sensingState时，证明这是一次热自修复，不需要重建协程
+                    if r.state == r.sensingState:
+                        continue
                     p_robot = physicalRobot(r, sim_time)
                     self.p_robots[robot.id] = p_robot
                     first_event = next(p_robot)
