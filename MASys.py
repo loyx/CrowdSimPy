@@ -10,7 +10,7 @@ from senseArea import SenseArea, Region
 from senseMap import SenseMap
 from task import Task, TimeRange, TimeSlot
 from robot import Robot, RobotCategory
-from message import Message
+from message import Message, FeedBack
 
 
 class MACrowdSystem:
@@ -58,6 +58,7 @@ class MACrowdSystem:
                 # 构建新的T和R
                 k = int(self.__repair_k * len(self.__robots))
                 new_tasks, new_robots = self.constructNewPlan(message, k)
+                yield FeedBack(1, new_robots)
                 self.__base_algorithm.new_allocationPlan(new_tasks, new_robots, self.senseMap)
                 self.__base_algorithm.allocationTasks()
 
@@ -72,6 +73,7 @@ class MACrowdSystem:
                     return message
             else:
                 return message
+            message = yield FeedBack(0)
 
     def needRepairing(self, message: Message):
         if message.status_code != 0 and self.senseMap.update_ratio > 0.8:

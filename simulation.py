@@ -1,11 +1,11 @@
-import queue
+import heapq
 import collections
-from typing import Dict
+from typing import Dict, List
 
 from robot import Robot
 from MASys import MACrowdSystem
 from realWorld import RealWorld
-from message import Message
+from message import Message, FeedBack
 
 Event = collections.namedtuple("Event", "time robot action")
 
@@ -38,7 +38,7 @@ def physicalRobot(robot: Robot, start_time=0):
 class Simulator:
 
     def __init__(self, p_robots, ma_sys):
-        self.events = queue.PriorityQueue()
+        self.events: List[Event] = []
         self.p_robots: Dict = p_robots
         self.realWorld = RealWorld()
         self.MASys: MACrowdSystem = ma_sys
@@ -49,7 +49,8 @@ class Simulator:
         # 预激robot
         for p_robot in self.p_robots.values():
             first_event = next(p_robot)
-            self.events.put(first_event)
+            # self.events.put(first_event)
+            heapq.heappush(self.events, first_event)
 
         # 预激MASys，并分配任务, 启动robot
         sim_sys = self.MASys.run()
@@ -59,31 +60,62 @@ class Simulator:
         sim_time = 0
         robot: Robot
         while sim_time < end_time:
-            if self.events.empty():
+            # if self.events.empty():
+            if len(self.events):
                 print("*** end of events ***")
                 break
 
-            sim_time, robot, action = self.events.get()
+            # sim_time, robot, action = self.events.get()
+            sim_time, robot, action = heapq.heappop(self.events)
 
             # 这些操作发生在状态转化的那个瞬间  # todo brokenState
             if robot.state == robot.movingState:
-                robot.sense()
+                if self.realWorld.canSense(robot):
+                    robot.sense()
+                    feed_back = FeedBack(0)
+                else:
+                    message = Message(3, robot.id, robot.C, robot.current_region, sim_time)
+                    feed_back: FeedBack = sim_sys.send(message)
             elif robot.state == robot.sensingState:
                 robot.submitTasks()  # todo other case
                 message = Message(0, robot.id, robot.C, robot.current_region, sim_time)
-                sim_sys.send(message)
-
-            print("time:", sim_time, robot.id * '  ', robot)
-            next_time = sim_time + self.realWorld.compute_duration(robot)
-            active_p_robot = self.p_robots[robot.id]
-            try:
-                next_event = active_p_robot.send(next_time)
-            except StopIteration:
-                del self.p_robots[robot.id]
+                feed_back: FeedBack = sim_sys.send(message)
             else:
-                self.events.put(next_event)
+                raise RuntimeError("error robot")
+
+            if feed_back.status_code == 0:
+                print("time:", sim_time, robot.id * '  ', robot)
+                next_time = sim_time + self.realWorld.compute_duration(robot)
+                active_p_robot = self.p_robots[robot.id]
+                try:
+                    next_event = active_p_robot.send(next_time)
+                except StopIteration:
+                    del self.p_robots[robot.id]
+                else:
+                    # self.events.put(next_event)
+                    heapq.heappush(self.events, next_event)
+            elif feed_back.status_code == 1:
+                need_repair_robots: List[Robot] = feed_back.robots
+
+                # 删除自修复的robot的event
+                for r in need_repair_robots:
+                    for index, event in enumerate(self.events):
+                        if r == event.robot:  # todo robot.__eq__
+                            del self.events[index]
+                            # 因为每一个robot有且只有一个event，所以此处break
+                            break
+
+                # 构建新的robot协程，并更新记录和预激
+                for r in need_repair_robots:
+                    p_robot = physicalRobot(r, sim_time)
+                    self.p_robots[robot.id] = p_robot
+                    first_event = next(p_robot)
+                    heapq.heappush(self.events, first_event)
+
+                # 恢复MASys的自修复部分
+                next(sim_sys)
         else:
-            print(f"*** end of simulation time: {self.events.qsize()} events pending ***")
+            print(f"*** end of simulation time: {len(self.events)} events pending ***")
 
 
 def main():
