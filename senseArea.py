@@ -54,8 +54,6 @@ class Region(Area):
         super().__init__(start_point, end_point)
         assert self.len[0] == self.len[1]
         self.id = rid
-        # other Region information
-        self.regInfo = object()
 
     def __repr__(self):
         return "Region({0}, <{1[0]},{1[1]}>, {2})".format(

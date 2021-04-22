@@ -110,6 +110,8 @@ class Robot:
         # 约定；当submit后，更新为real_finish_time
         self.finish_time: List[float] = [0]
         self.time_used: List[float] = [0]
+        self.moving_time: List[float] = [0]
+        self.sensing_time: List[float] = [0]
 
     def __repr__(self):
         return "Robot({}, {}, {})".format(self.id, self.C, self.state)
@@ -145,6 +147,9 @@ class Robot:
         self.finish_time = self.finish_time[:cursor]
         self.task_in_reg = self.task_in_reg[:cursor]
         self.sensor_in_reg = self.sensor_in_reg[:cursor]  # use GC
+        self.time_used = self.time_used[:cursor]
+        self.moving_time = self.moving_time[:cursor]
+        self.sensing_time = self.sensingState[:cursor]
 
     def canFinishTaskInTime(self, time):
         tc = self.current_cursor

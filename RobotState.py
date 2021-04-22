@@ -35,6 +35,16 @@ class RobotState(ABC):
     def broken(self):
         raise StateError(f"{type(self).__name__} cannot broken()")
 
+    def assignTaskOpr(self, reg, task, used_sensor, ideal_time):
+        self.robot.task_in_reg.append([task])
+        self.robot.sensor_in_reg.append([used_sensor])
+        time_used = ideal_time - self.robot.finish_time[-1]
+        self.robot.time_used.append(time_used)
+        self.robot.finish_time.append(ideal_time)
+        sensing_time = self.robot.C.intraD(reg) / self.robot.C.v
+        self.robot.sensing_time.append(sensing_time)
+        self.robot.moving_time.append(time_used-sensing_time)
+
 
 class IdleState(RobotState):
 
@@ -46,10 +56,7 @@ class IdleState(RobotState):
             self.robot.task_in_reg[-1].append(task)
             self.robot.sensor_in_reg[-1].append(used_sensor)
         else:
-            self.robot.task_in_reg.append([task])
-            self.robot.sensor_in_reg.append([used_sensor])
-            self.robot.time_used.append(ideal_time-self.robot.finish_time[-1])
-            self.robot.finish_time.append(ideal_time)
+            self.assignTaskOpr(reg, task, used_sensor, ideal_time)
 
         # self.robot.state = self.robot.idleState
 
@@ -89,10 +96,7 @@ class SensingState(RobotState):
         ideal_time = self.robot.idealFinishTime(reg, used_sensor)
 
         # 不同于idleState的分配任务，SensingState只能在之后分配任务，不能并发执行
-        self.robot.task_in_reg.append([task])
-        self.robot.sensor_in_reg.append([used_sensor])
-        self.robot.time_used.append(ideal_time - self.robot.finish_time[-1])
-        self.robot.finish_time.append(ideal_time)
+        self.assignTaskOpr(reg, task, used_sensor, ideal_time)
 
         # self.robot.state = self.robot.sensingState
 
