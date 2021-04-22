@@ -147,6 +147,13 @@ class Robot:
         self.state.broken()
 
     """ utility functions """
+    def canFinishTaskInTime(self, time):
+        tc = self.current_cursor
+        finish_a_task_time = self.ideal_finish_time[tc] - self.ideal_finish_time[tc-1]
+        if time + finish_a_task_time > self.ideal_finish_time[tc]:
+            return False
+        else:
+            return True
 
     @property
     def isFinishMissions(self):

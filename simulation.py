@@ -77,8 +77,11 @@ class Simulator:
                     message = Message(3, robot.id, robot.C, robot.current_region, sim_time)
                     feed_back: FeedBack = sim_sys.send(message)
             elif robot.state == robot.sensingState:
-                robot.submitTasks()  # todo other case
-                message = Message(0, robot.id, robot.C, robot.current_region, sim_time)
+                robot.submitTasks()
+                if robot.canFinishTaskInTime(sim_time):
+                    message = Message(0, robot.id, robot.C, robot.current_region, sim_time)
+                else:
+                    message = Message(2, robot.id, robot.C, robot.current_region, sim_time)
                 feed_back: FeedBack = sim_sys.send(message)
             else:
                 raise RuntimeError("error robot")
@@ -100,7 +103,8 @@ class Simulator:
                 # 删除自修复的robot的event
                 for r in need_repair_robots:
                     for index, event in enumerate(self.events):
-                        if r == event.robot:  # todo robot.__eq__
+                        # 这里必须使用id判断相等，因为一个robot被多个对象引用
+                        if r == event.robot:
                             del self.events[index]
                             # 因为每一个robot有且只有一个event，所以此处break
                             break
