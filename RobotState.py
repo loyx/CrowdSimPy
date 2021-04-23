@@ -1,7 +1,5 @@
 from abc import ABC
 
-from robot import Robot
-
 
 class StateError(Exception):
     """
@@ -12,7 +10,7 @@ class StateError(Exception):
 class RobotState(ABC):
 
     def __init__(self, robot):
-        self.robot: Robot = robot
+        self.robot = robot
 
     def __repr__(self):
         return f"RobotState: {type(self).__name__[:-5]}"

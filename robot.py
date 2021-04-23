@@ -37,6 +37,10 @@ class RobotCategory(ABC):
             dis += dataDiff(val, self.physical_property.get(key))
         return dis
 
+    def __repr__(self):
+        cls = type(self)
+        return f"{cls.__name__}(id:{self.id}, category:{self.category}, move mode:{self.move_mode})"
+
     @abstractmethod
     def interD(self, reg1: Region, reg2: Region) -> float:
         """

@@ -57,7 +57,7 @@ class Region(Area):
         self.id = rid
 
     def __repr__(self):
-        return "Region({0}, <{1[0]},{1[1]}>, {2})".format(
+        return "Region(id:{0}, center:<{1[0]},{1[1]}>, size:{2})".format(
             self.id,
             self.center,
             self.size
