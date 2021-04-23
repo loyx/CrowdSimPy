@@ -68,7 +68,7 @@ class MACrowdSystem:
         message = yield
         while True:
             if message.status_code == 0:
-                self.senseMap.update(message.region, message.real_time, message.robot_category)
+                self.senseMap.update(message.region, message.real_time, message.robot)
                 if self.senseMap.update_ratio >= 0.8:
                     return message
             else:
@@ -93,6 +93,8 @@ class MACrowdSystem:
             if r.id == message.robot_id:
                 target_r = r
                 break
+        assert target_r == message.robot
+
         most_near = queue.PriorityQueue(k)
         for r in self.__robots:
             most_near.put((target_r.distBetweenRobot(r), r))
@@ -198,7 +200,7 @@ class GreedyBaseAlgor(BaseAlgorithm):
         f2 = self.THETAS[1] * (r.C.interD(r.planned_path[-1], reg) + r.C.intraD(reg)) / self.LAMBDAS[1]
 
         try:
-            ts = list(itertools.takewhile(lambda t: at in t, self._sense_map.TS))[0]
+            ts = list(itertools.takewhile(lambda t: at in t, self._sense_map.TimeSlots))[0]
         except IndexError:
             raise ValueError(f"error arrival time {at}")
         f3 = self.THETAS[2] * self._sense_map.acquireFunction((reg, ts, r.C), self._kappa) / self.LAMBDAS[2]

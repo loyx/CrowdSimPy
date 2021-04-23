@@ -73,14 +73,14 @@ class Simulator:
                     robot.sense()
                     feed_back = FeedBack(0)
                 else:
-                    message = Message(3, robot.id, robot.C, robot.current_region, sim_time)
+                    message = Message(3, robot.id, robot, robot.current_region, sim_time)
                     feed_back: FeedBack = sim_sys.send(message)
             elif robot.state == robot.sensingState:
                 robot.submitTasks(sim_time)
                 if robot.canFinishTaskInTime(sim_time):
-                    message = Message(0, robot.id, robot.C, robot.current_region, sim_time)
+                    message = Message(0, robot.id, robot, robot.current_region, sim_time)
                 else:
-                    message = Message(2, robot.id, robot.C, robot.current_region, sim_time)
+                    message = Message(2, robot.id, robot, robot.current_region, sim_time)
                 feed_back: FeedBack = sim_sys.send(message)
             else:
                 raise RuntimeError("error robot")

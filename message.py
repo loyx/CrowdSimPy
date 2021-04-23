@@ -22,12 +22,12 @@ class Message:
         3: "robot cannot sense this reg",
     }
 
-    def __init__(self, sc, r_id, rc, reg, rt):
+    def __init__(self, sc, r_id, r, reg, rt):
         if sc not in Message.STATUS:
             raise ValueError(f"no status code {sc}")
         self.status_code = sc
         self.robot_id = r_id
-        self.robot_category = rc
+        self.robot = r
         self.region = reg
         self.real_time = rt
 
