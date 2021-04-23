@@ -12,7 +12,8 @@ class Sensor:
         self.range = s_range
 
     def __repr__(self):
-        return "Sensor({}: {}, {}, {})".format(self.id, self.category, self.accuracy, self.range)
+        return "Sensor(id:{}: category:{}, acc:{}, range:{})"\
+            .format(self.id, self.category, self.accuracy, self.range)
 
     def __eq__(self, other):
         return

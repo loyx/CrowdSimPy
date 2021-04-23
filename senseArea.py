@@ -46,7 +46,7 @@ class Area:
         return isinstance(item, Point) and self.inRange(item)
 
     def __repr__(self):
-        return "Area(<{0[0]},{0[0]}>,<{1[0]},{1[1]}>)".format(self.startPoint, self.endPoint)
+        return "Area(start:<{0[0]},{0[0]}>, end:<{1[0]},{1[1]}>)".format(self.startPoint, self.endPoint)
 
 
 class Region(Area):
@@ -78,7 +78,7 @@ class SenseArea(Area):
         self.unit = unit
 
     def __repr__(self):
-        return "SenseArea({0[0]}{1},{0[1]}{1})".format(
+        return "SenseArea(start:{0[0]}{1},end:{0[1]}{1})".format(
             self.len,
             self.unit
         )
