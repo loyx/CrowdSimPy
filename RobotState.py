@@ -26,7 +26,7 @@ class RobotState(ABC):
     def executeMissions(self):
         raise StateError(f"{type(self).__name__} cannot executeMissions()")
 
-    def submitTask(self):
+    def submitTask(self, time):
         raise StateError(f"{type(self).__name__} cannot submitTask()")
 
     def sense(self):
@@ -39,11 +39,11 @@ class RobotState(ABC):
         self.robot.task_in_reg.append([task])
         self.robot.sensor_in_reg.append([used_sensor])
         time_used = ideal_time - self.robot.finish_time[-1]
-        self.robot.time_used.append(time_used)
+        self.robot.ideal_time_used.append(time_used)
         self.robot.finish_time.append(ideal_time)
         sensing_time = self.robot.C.intraD(reg) / self.robot.C.v
-        self.robot.sensing_time.append(sensing_time)
-        self.robot.moving_time.append(time_used-sensing_time)
+        self.robot.ideal_sensing_time.append(sensing_time)
+        self.robot.ideal_moving_time.append(time_used - sensing_time)
 
 
 class IdleState(RobotState):
@@ -74,7 +74,7 @@ class MovingState(RobotState):
         start_reg = self.robot.planned_path[current_cursor-1]
         end_reg = self.robot.current_task_region
         assert end_reg == self.robot.planned_path[current_cursor-1]
-        percentage = (time-self.robot.finish_time[current_cursor-1]) / self.robot.time_used[current_cursor]
+        percentage = (time-self.robot.finish_time[current_cursor-1]) / self.robot.ideal_time_used[current_cursor]
         self.robot.current_region = self.robot.C.getLocation(start_reg, end_reg, percentage, tr)
         self.robot.location = self.robot.current_region.randomLoc()
 
@@ -107,7 +107,8 @@ class SensingState(RobotState):
 
         # self.robot.state = self.robot.sensingState
 
-    def submitTask(self):
+    def submitTask(self, time):
+        self.robot.finish_time[self.robot.current_cursor] = time  # 更新real time
         self.robot.current_cursor += 1
         if self.robot.current_cursor < len(self.robot.planned_path):
             self.robot.current_task_region = self.robot.planned_path[self.robot.current_cursor]

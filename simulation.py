@@ -76,7 +76,7 @@ class Simulator:
                     message = Message(3, robot.id, robot.C, robot.current_region, sim_time)
                     feed_back: FeedBack = sim_sys.send(message)
             elif robot.state == robot.sensingState:
-                robot.submitTasks()
+                robot.submitTasks(sim_time)
                 if robot.canFinishTaskInTime(sim_time):
                     message = Message(0, robot.id, robot.C, robot.current_region, sim_time)
                 else:

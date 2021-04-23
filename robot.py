@@ -94,9 +94,9 @@ class Robot:
         self.planned_path: List[Region] = [init_reg]
         # 约定；当submit后，更新为real_finish_time
         self.finish_time: List[float] = [0]
-        self.time_used: List[float] = [0]
-        self.moving_time: List[float] = [0]
-        self.sensing_time: List[float] = [0]
+        self.ideal_time_used: List[float] = [0]
+        self.ideal_moving_time: List[float] = [0]
+        self.ideal_sensing_time: List[float] = [0]
 
     def __repr__(self):
         return "Robot({}, {}, {})".format(self.id, self.C, self.state)
@@ -114,9 +114,9 @@ class Robot:
         # state
         self.state.executeMissions()
 
-    def submitTasks(self):
+    def submitTasks(self, time):
         # state
-        self.state.submitTask()
+        self.state.submitTask(time)
 
     def sense(self):
         # state
@@ -132,18 +132,15 @@ class Robot:
         self.finish_time = self.finish_time[:cursor]
         self.task_in_reg = self.task_in_reg[:cursor]
         self.sensor_in_reg = self.sensor_in_reg[:cursor]  # use GC
-        self.time_used = self.time_used[:cursor]
-        self.moving_time = self.moving_time[:cursor]
-        self.sensing_time = self.sensingState[:cursor]
+        self.ideal_time_used = self.ideal_time_used[:cursor]
+        self.ideal_moving_time = self.ideal_moving_time[:cursor]
+        self.ideal_sensing_time = self.sensingState[:cursor]
 
     def canFinishTaskInTime(self, time):
-        tc = self.current_cursor
-        self.finish_time[tc] = time  # 更新real time，但这让该函数承担了不属于它的职责。todo 优化；设计
-
         if self.isFinishMissions:  # 如果已经完成所有任务，则返回True
             return True
-        finish_a_task_time = self.finish_time[tc] - self.finish_time[tc - 1]
-        if time + finish_a_task_time > self.finish_time[tc]:
+        assert time == self.finish_time[self.current_cursor-1]
+        if time + self.ideal_time_used[self.current_cursor] > self.finish_time[self.current_cursor]:
             return False
         else:
             return True

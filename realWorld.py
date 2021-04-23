@@ -22,11 +22,11 @@ class RealWorld:
                 break
 
         if robot.state == robot.sensingState:
-            ideal_time = robot.sensing_time[robot.current_cursor]
+            ideal_time = robot.ideal_sensing_time[robot.current_cursor]
             reg_rate = self.reg_info[robot.current_task_region.id][index]
             return ideal_time*(1-reg_rate)*self.thetas[index]
         else:
-            ideal_time = robot.moving_time[robot.current_cursor]
+            ideal_time = robot.ideal_moving_time[robot.current_cursor]
             return ideal_time*random.uniform(1, self.moving_affect)
 
     def canSense(self, robot: Robot) -> bool:
