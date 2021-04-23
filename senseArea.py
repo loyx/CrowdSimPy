@@ -37,6 +37,7 @@ class Area:
                and self.startPoint[1] <= point[1] < self.endPoint[1]
 
     def randomLoc(self) -> Point:
+        # todo bug: uniform is [a,b] not [a,b)
         p1 = random.uniform(self.startPoint[0], self.endPoint[0])
         p2 = random.uniform(self.startPoint[1], self.endPoint[1])
         return Point(p1, p2)
