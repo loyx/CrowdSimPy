@@ -42,7 +42,7 @@ class MACrowdSystem:
         self.RC: List[RobotCategory] = robot_categorise
 
         map_size = (len(self.Regions), len(self.TS), len(self.RC))
-        self.senseMap = SenseMap(map_size, self.Regions, self.TS, self.RC)
+        self.senseMap = SenseMap(map_size, self.Regions, self.TS, self.RC, self.sense_time.len)
 
     """ actions """
     def publishTask(self, task):
