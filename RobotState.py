@@ -20,7 +20,7 @@ class RobotState(ABC):
     def assignTask(self, reg, task, used_sensor):
         raise StateError(f"{type(self).__name__} cannot assignTask()")
 
-    def cancelPlan(self, time, tr):
+    def cancelPlan(self, time, regions):
         raise StateError(f"{type(self).__name__} cannot cancelPlan()")
 
     def executeMissions(self):
@@ -35,9 +35,12 @@ class RobotState(ABC):
     def broken(self):
         raise StateError(f"{type(self).__name__} cannot broken()")
 
-    def assignTaskOpr(self, reg, task, used_sensor, ideal_time):
+    def assignTaskOpr(self, reg, task, used_sensor, ideal_time):  # todo 优化：函数形式
+        # update task and sensor record
         self.robot.task_in_reg.append([task])
         self.robot.sensor_in_reg.append([used_sensor])
+
+        # update time record
         time_used = ideal_time - self.robot.finish_time[-1]
         self.robot.ideal_time_used.append(time_used)
         self.robot.finish_time.append(ideal_time)
@@ -68,16 +71,17 @@ class IdleState(RobotState):
 
 class MovingState(RobotState):
 
-    def cancelPlan(self, time, tr):
+    def cancelPlan(self, time, regions):
         # update location
         current_cursor = self.robot.current_cursor
         start_reg = self.robot.planned_path[current_cursor-1]
         end_reg = self.robot.current_task_region
-        assert end_reg == self.robot.planned_path[current_cursor-1]
+        assert end_reg == self.robot.planned_path[current_cursor]
         percentage = (time-self.robot.finish_time[current_cursor-1]) / self.robot.ideal_time_used[current_cursor]
-        self.robot.current_region = self.robot.C.getLocation(start_reg, end_reg, percentage, tr)
+        self.robot.current_region = self.robot.C.getLocation(start_reg, end_reg, percentage, regions)
         self.robot.location = self.robot.current_region.randomLoc()
 
+        # clear plan
         self.robot.clearRecord(self.robot.current_cursor)
         self.robot.current_cursor -= 1
         self.robot.current_task_region = None
@@ -100,7 +104,7 @@ class SensingState(RobotState):
 
         # self.robot.state = self.robot.sensingState
 
-    def cancelPlan(self, time, tr):
+    def cancelPlan(self, time, regions):
         assert self.robot.current_region == self.robot.current_task_region
         self.robot.location = self.robot.current_region.randomLoc()
         self.robot.clearRecord(self.robot.current_cursor + 1)

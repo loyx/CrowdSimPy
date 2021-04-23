@@ -109,9 +109,9 @@ class Robot:
         # state
         self.state.assignTask(reg, task, used_sensor)
 
-    def cancelPlan(self, time, tr):
+    def cancelPlan(self, time, regions):
         # state
-        self.state.cancelPlan(time, tr)
+        self.state.cancelPlan(time, regions)
 
     def executeMissions(self):
         # state
