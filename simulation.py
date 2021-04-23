@@ -127,9 +127,5 @@ class Simulator:
             print(f"*** end of simulation time: {len(self.events)} events pending ***")
 
 
-def main():
-    pass
-
-
 if __name__ == '__main__':
-    main()
+    pass

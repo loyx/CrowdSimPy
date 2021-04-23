@@ -33,8 +33,8 @@ class Area:
         self.center = Point(start_point[0] + self.len[0] / 2, start_point[1] + self.len[1] / 2)
 
     def inRange(self, point: Point):
-        return self.startPoint[0] < point[0] < self.endPoint[0] \
-               and self.startPoint[1] < point[1] < self.endPoint[1]
+        return self.startPoint[0] <= point[0] < self.endPoint[0] \
+               and self.startPoint[1] <= point[1] < self.endPoint[1]
 
     def randomLoc(self) -> Point:
         p1 = random.uniform(self.startPoint[0], self.endPoint[0])
