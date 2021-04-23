@@ -44,6 +44,14 @@ class MACrowdSystem:
         map_size = (len(self.Regions), len(self.TS), len(self.RC))
         self.senseMap = SenseMap(map_size, self.Regions, self.TS, self.RC)
 
+    """ actions """
+    def publishTask(self, task):
+        self.__decomposeTask(task)
+        self.__tasks.append(task)
+
+    def registerRobot(self, robot):
+        self.__robots.append(robot)
+
     def run(self):
         # self.senseMap.creation()
         self.senseMap.beginUpdating()
@@ -53,16 +61,17 @@ class MACrowdSystem:
         self.__base_algorithm.allocationTasks()
         while len(self.__finished_tasks) != len(self.__tasks):
             # 执行感知任务
-            message = yield from self.execMissions()
-            if self.needRepairing(message):
+            message = yield from self.__execMissions()
+            if self.__needRepairing(message):
                 # 构建新的T和R
                 k = int(self.__repair_k * len(self.__robots))
-                new_tasks, new_robots = self.constructNewPlan(message, k)
+                new_tasks, new_robots = self.__constructNewPlan(message, k)
                 yield FeedBack(1, new_robots)
                 self.__base_algorithm.new_allocationPlan(new_tasks, new_robots, self.senseMap)
                 self.__base_algorithm.allocationTasks()
 
-    def execMissions(self):
+    """ utility functions """
+    def __execMissions(self):
         for r in self.__robots:
             r.executeMissions()
         message = yield
@@ -75,13 +84,13 @@ class MACrowdSystem:
                 return message
             message = yield FeedBack(0)
 
-    def needRepairing(self, message: Message):
+    def __needRepairing(self, message: Message):
         if message.status_code != 0 and self.senseMap.update_ratio > 0.8:
             return True
         else:
             return False
 
-    def constructNewPlan(self, message, k) -> Tuple[List[Task], List[Robot]]:
+    def __constructNewPlan(self, message, k) -> Tuple[List[Task], List[Robot]]:
         assert message.status_code != 0
         if k == len(self.__robots):
             new_task = list(filter(lambda t: not t.isFinished, self.__tasks))
@@ -105,20 +114,13 @@ class MACrowdSystem:
         new_tasks = list(reduce(operator.or_, [x.unfinishedTasks() for x in new_robots]))
         return new_tasks, new_robots
 
-    def decomposeTask(self, task: Task):
+    def __decomposeTask(self, task: Task):
         assert not task.TR
         for reg in self.Regions:
             if reg.center in task.area:
                 task.TR.append(reg)
         task.TR.sort(key=attrgetter('id'))
         task.finished_reg = {reg.id: False for reg in task.TR}
-
-    def publishTask(self, task):
-        self.decomposeTask(task)
-        self.__tasks.append(task)
-
-    def registerRobot(self, robot):
-        self.__robots.append(robot)
 
 
 class BaseAlgorithm(ABC):
@@ -186,7 +188,7 @@ class GreedyBaseAlgor(BaseAlgorithm):
                     sample_times = self.allocationPlan.setdefault((task, reg, rob), 0)
                     if finish_time not in task.timeRange or not select_sensors and sample_times < self.GAMMA:
                         continue
-                    u = self.DeltaUtility(reg, rob, finish_time)
+                    u = self.__DeltaUtility(reg, rob, finish_time)
                     if u > u_max:
                         u_max = u
                         r_max = rob
@@ -195,7 +197,7 @@ class GreedyBaseAlgor(BaseAlgorithm):
                     r_max.assignTask(reg, task, s_select)
                     self.allocationPlan[(task, reg, r_max)] += 1
 
-    def DeltaUtility(self, reg: Region, r: Robot, at: int):
+    def __DeltaUtility(self, reg: Region, r: Robot, at: int):
         f1 = self.THETAS[0] * 1 / self.LAMBDAS[0]
         f2 = self.THETAS[1] * (r.C.interD(r.planned_path[-1], reg) + r.C.intraD(reg)) / self.LAMBDAS[1]
 
