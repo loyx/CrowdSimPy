@@ -1,3 +1,4 @@
+import numbers
 from abc import ABC
 from typing import List, Dict
 
@@ -7,7 +8,7 @@ from sensor import Sensor
 
 class TimeBase(ABC):
 
-    def __init__(self, s: int, e: int):
+    def __init__(self, s, e):
         self.s = s
         self.e = e
 
@@ -19,7 +20,7 @@ class TimeBase(ABC):
         return self.e - self.s
 
     def __contains__(self, item):
-        if not isinstance(item, int):
+        if not isinstance(item, numbers.Real):
             return False
         return self.s <= item < self.e
 
@@ -31,7 +32,7 @@ class TimeSlot(TimeBase):
         self.id = tid
 
     def __repr__(self):
-        return f"TimeSlot({self.id}, [{self.s}, {self.e}])"
+        return f"TimeSlot({self.id}, [{self.s}, {self.e}))"
 
     def dist(self, ts: 'TimeSlot'):
         return abs(self.id - ts.id)
@@ -40,7 +41,7 @@ class TimeSlot(TimeBase):
 class TimeRange(TimeBase):
 
     def __repr__(self):
-        return f"TimeRange({self.s}, {self.e})"
+        return f"TimeRange([{self.s}, {self.e}))"
 
     def discretize(self, time_granularity: int) -> List[TimeSlot]:
         if self.len % time_granularity:
@@ -75,3 +76,9 @@ class Task:
     def adequateSensor(self, sensor: Sensor):
         return sensor.category == self.__required_sensor.category  \
                and sensor.accuracy >= self.__required_sensor.accuracy
+
+
+if __name__ == '__main__':
+    tr = TimeRange(0, 100)
+    print(tr)
+    print(tr.discretize(5))
