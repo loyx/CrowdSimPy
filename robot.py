@@ -106,7 +106,8 @@ class Robot:
         self.ideal_sensing_time: List[float] = [0]
 
     def __repr__(self):
-        return "Robot(id:{}, c:{}, state:{})".format(self.id, self.C, self.state)
+        return "Robot(id:{}, c:{}, {}, loc:Region{})"\
+            .format(self.id, type(self.C).__name__, self.state, self.init_reg.id)
 
     """ robot actions """
     def assignTask(self, reg, task, used_sensor):
