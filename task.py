@@ -66,9 +66,9 @@ class Task:
         self.isFinished = False
 
     def __repr__(self):
-        return "Task({}, {}, {}, {})".format(
+        return "Task(id:{}, sensor{}, {}, {})".format(
             self.id,
-            self.__required_sensor,
+            self.__required_sensor.id,
             self.area,
             self.timeRange
         )
