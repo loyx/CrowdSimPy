@@ -58,6 +58,9 @@ class Simulator:
         self.MASys: MACrowdSystem = ma_sys
 
     def run(self, end_time):
+        print()
+        print('-'*60, 'START SIMULATION', '-'*60)
+        print("*** start event ***")
         # init
         # 预激robot
         for p_robot in self.p_robots.values():

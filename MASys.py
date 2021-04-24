@@ -60,6 +60,10 @@ class MACrowdSystem:
         # self-repairing task allocation base_algorithm
         self.__base_algorithm.new_allocationPlan(self.__tasks, self.__robots, self.senseMap)
         self.__base_algorithm.allocationTasks()
+        cov = self.__base_algorithm.totalCov()
+        r_dis = self.__base_algorithm.robotDis()
+        print("### MASys: finished allocation tasks ###")
+        print(f"### MASys: ideal cov: {cov}, ideal robot dis: {r_dis} ###")
         while len(self.__finished_tasks) != len(self.__tasks):
             # 执行感知任务
             print()
@@ -67,6 +71,7 @@ class MACrowdSystem:
             message = yield from self.__execMissions()
             if self.__needRepairing(message):
                 # 构建新的T和R
+                print("### MASys: start self repairing ###")
                 k = int(self.__repair_k * len(self.__robots))
                 new_tasks, new_robots = self.__constructNewPlan(message, k)
                 yield FeedBack(1, new_robots)
