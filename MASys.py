@@ -42,7 +42,7 @@ class MACrowdSystem:
         self.RC: List[RobotCategory] = robot_categorise
 
         map_size = (len(self.Regions), len(self.TS), len(self.RC))
-        self.senseMap = SenseMap(map_size, self.Regions, self.TS, self.RC, self.sense_time.len)
+        self.senseMap = SenseMap(map_size, self.Regions, self.TS, self.sense_time.len, self.RC)
 
     """ actions """
     def publishTask(self, task):
@@ -55,12 +55,15 @@ class MACrowdSystem:
     def run(self):
         # self.senseMap.creation()
         self.senseMap.beginUpdating()
+        print("### MASys: senseMap ready ###")
 
         # self-repairing task allocation base_algorithm
         self.__base_algorithm.new_allocationPlan(self.__tasks, self.__robots, self.senseMap)
         self.__base_algorithm.allocationTasks()
         while len(self.__finished_tasks) != len(self.__tasks):
             # 执行感知任务
+            print()
+            print("### MASys: start execution ###")
             message = yield from self.__execMissions()
             if self.__needRepairing(message):
                 # 构建新的T和R
@@ -174,7 +177,7 @@ class GreedyBaseAlgor(BaseAlgorithm):
             if task.isFinished:
                 continue
             for reg in task.TR:
-                if not task.finished_reg[task.id]:
+                if not task.finished_reg[reg.id]:
                     task_in_reg.setdefault(reg, []).append(task)
 
         for reg, tasks in task_in_reg.items():

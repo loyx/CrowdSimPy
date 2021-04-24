@@ -1,5 +1,5 @@
 import heapq
-import collections
+# import collections
 from typing import Dict, List
 
 from robot import Robot
@@ -7,7 +7,21 @@ from MASys import MACrowdSystem
 from realWorld import RealWorld
 from message import Message, FeedBack
 
-Event = collections.namedtuple("Event", "time robot action")
+# Event = collections.namedtuple("Event", "time robot action")
+
+
+class Event:
+
+    def __init__(self, time, robot, action):
+        self.time = time
+        self.robot = robot
+        self.action = action
+
+    def __repr__(self):
+        return f"Event(time:{self.time}, robot:{self.robot}, action:{self.action})"
+
+    def __lt__(self, other):
+        return self.time < other.time
 
 
 def physicalRobot(robot: Robot, start_time=0):
@@ -50,10 +64,12 @@ class Simulator:
             first_event = next(p_robot)
             # self.events.put(first_event)
             heapq.heappush(self.events, first_event)
+        print("$$$ simulator: init p_robots $$$")
 
         # 预激MASys，并分配任务, 启动robot
         sim_sys = self.MASys.run()
         next(sim_sys)
+        print("$$$ simulator: start MASys $$$")
 
         # start simulation
         sim_time = 0

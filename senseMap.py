@@ -33,10 +33,15 @@ class SenseMap:
         self.Regions: List[Region] = regions
         self.TimeSlots: List[TimeSlot] = time_slots
         self.RobotCategories: List[RobotCategory] = robot_categories
-        self.cellNum = self.size[0]*self.size[1]*self.size[2]
+        self.cellNum = self.size[0] * self.size[1] * self.size[2]
 
         self.__map: Dict[MapPoint, tuple] = {}
-        self.__prior_map: Dict[MapPoint, int] = {}
+        self.__prior_map: Dict[MapPoint, int] = {
+            MapPoint(i, j, k): 0
+            for i in range(self.size[0])
+            for j in range(self.size[1])
+            for k in range(self.size[2])
+        }
         self.dimension = 3
 
         # base_algorithm parameters
@@ -53,6 +58,7 @@ class SenseMap:
         return f"SenseMap(Size:{self.size}, Update:{self.update_times})"
 
     """ access SenseMap """
+
     def __stdKey(self, keys):
         if not isinstance(keys, tuple):
             raise TypeError(f"{type(self).__name__} indices must be tuple")
@@ -61,7 +67,7 @@ class SenseMap:
             if not isinstance(keys[index], int) and not isinstance(keys[index], i_class):
                 raise IndexError(f"key[{index}] need int or {i_class.__name__}")
 
-        keys = (x.getattr("id") for x in keys if type(x) != int)
+        keys = tuple(x.getattr("id") if type(x) != int else x for x in keys)
         if any(i >= j for i, j in zip(keys, self.size)):
             raise IndexError("SenseMap index out of range")
         return MapPoint(*keys)
@@ -75,15 +81,19 @@ class SenseMap:
         self.__map[key] = value
 
     """ sensMap info """
+
     @property
     def update_ratio(self):
         return self.update_times / self.cellNum
 
     """ senseMap action """
+
     def beginUpdating(self):
         old_values = self.__prior_map.values()
         p_range = max(old_values) - min(old_values)
-        for key in itertools.product(range(x) for x in self.size):
+        if p_range == 0:
+            p_range = 1
+        for key in itertools.product(*(range(x) for x in self.size)):
             key = self.__stdKey(key)
             robot_category = self.RobotCategories[key.rc]  # todo 优化：简化操作，放在robot类里
             mu = self.__prior_map[key] / p_range * robot_category.intraD(self.Regions[key.reg]) / robot_category.v
@@ -95,8 +105,8 @@ class SenseMap:
 
         # senseMap 的Update发生在robot submit之后，此时cursor指向下一个目标任务
         # 因此上一任务的实际用时为 [cursor-1] - [cursor-2]
-        assert rt == r.finish_time[r.current_cursor-1]
-        real_used_time = rt - r.finish_time[r.current_cursor-2]
+        assert rt == r.finish_time[r.current_cursor - 1]
+        real_used_time = rt - r.finish_time[r.current_cursor - 2]
         r_pref = t_ideal - real_used_time / t_ideal
 
         # 因为感知信息图记录的是一个时间周期内的情况（例如，1天24h内）
@@ -115,9 +125,10 @@ class SenseMap:
         self.__history.append(History(r_pref, MapPoint(reg, ts, r.C)))
 
     def acquireFunction(self, key: tuple, kappa):
-        return self[key][0] + kappa*self[key][1]
+        return self[key][0] + kappa * self[key][1]
 
     """ utility functions """
+
     def __new_update_cycle(self):
         for _, key in self.__history:
             self.__prior_map[key] = self.acquireFunction(key, self.UPDATE_KAPPA)
