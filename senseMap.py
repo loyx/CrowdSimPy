@@ -159,8 +159,8 @@ class SenseMap:
 
     def __matern(self, p1: MapPoint, p2: MapPoint):
         d = self.__dist(p1, p2)
-        return (1 + 5 ** 0.5 * d / self.PHO + 5 * d * d / (3 * self.PHO * self.PHO)) * math.exp(
-            -5 ** 0.5 * d / self.PHO)
+        return (1 + 2.236067977 * d / self.PHO + 5 * d * d / (3 * self.PHO * self.PHO)) * math.exp(
+            -2.236067977 * d / self.PHO)
 
 
 class MapCreator:
