@@ -63,6 +63,8 @@ class IdleState(RobotState):
 
     def executeMissions(self):
         self.robot.current_cursor += 1
+        if self.robot.isFinishMissions:  # 当机器人未被分配任何任务时，触发此种情况
+            return
         self.robot.current_task_region = self.robot.planned_path[self.robot.current_cursor]
         self.robot.state = self.robot.movingState
 

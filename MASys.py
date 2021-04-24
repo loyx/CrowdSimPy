@@ -196,7 +196,7 @@ class GreedyBaseAlgor(BaseAlgorithm):
                         u_max = u
                         r_max = rob
                         s_select = select_sensors.pop()
-                if not r_max:
+                if r_max:
                     r_max.assignTask(reg, task, s_select)
                     self.allocationPlan[(task, reg, r_max)] += 1
 
