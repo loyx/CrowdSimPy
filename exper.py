@@ -8,6 +8,7 @@ from sensor import Sensor
 from robot import Robot
 from simulation import Simulator, physicalRobot
 from realWorld import RealWorld
+from resultDisplay import pltMASys
 
 # experiment parameters
 RANDOM_SEED = None
@@ -16,7 +17,7 @@ UV_NUMS = 8
 SMALL_UV_NUMS = 12
 TASK_NUMS = 30
 
-area_len = 30
+area_len = 100
 
 # experiment setting
 random.seed(RANDOM_SEED)
@@ -26,7 +27,7 @@ print("*** System sense area ***")
 start_point = Point(0, 0)
 end_point = Point(area_len, area_len)
 sense_area = SenseArea(start_point, end_point)
-grid_granularity = 3
+grid_granularity = 5
 print(sense_area)
 print()
 
@@ -149,6 +150,8 @@ for task in tasks:
 
 # real word
 real_word = RealWorld(len(Regions), (0, 0, 0), (1, 1, 1))
+
+pltMASys(multi_agents_system)
 
 # sim
 physical_robots = {r.id: physicalRobot(r) for r in all_robots}

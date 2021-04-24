@@ -24,8 +24,8 @@ class MACrowdSystem:
                  base_algorithm,
                  repair_k=1
                  ):
-        self.__robots: List[Optional[Robot]] = []
-        self.__tasks: List[Optional[Task]] = []
+        self.robots: List[Optional[Robot]] = []
+        self.tasks: List[Optional[Task]] = []
         self.__base_algorithm: BaseAlgorithm = base_algorithm
         self.__repair_k = repair_k
 
@@ -47,10 +47,10 @@ class MACrowdSystem:
     """ actions """
     def publishTask(self, task):
         self.__decomposeTask(task)
-        self.__tasks.append(task)
+        self.tasks.append(task)
 
     def registerRobot(self, robot):
-        self.__robots.append(robot)
+        self.robots.append(robot)
 
     def run(self):
         # self.senseMap.creation()
@@ -58,13 +58,13 @@ class MACrowdSystem:
         print("### MASys: senseMap ready ###")
 
         # self-repairing task allocation base_algorithm
-        self.__base_algorithm.new_allocationPlan(self.__tasks, self.__robots, self.senseMap)
+        self.__base_algorithm.new_allocationPlan(self.tasks, self.robots, self.senseMap)
         self.__base_algorithm.allocationTasks()
         cov = self.__base_algorithm.totalCov()
         r_dis = self.__base_algorithm.robotDis()
         print("### MASys: finished allocation tasks ###")
         print(f"### MASys: ideal cov: {cov}, ideal robot dis: {r_dis} ###")
-        while len(self.__finished_tasks) != len(self.__tasks):
+        while len(self.__finished_tasks) != len(self.tasks):
             # 执行感知任务
             print()
             print("### MASys: start execution ###")
@@ -72,7 +72,7 @@ class MACrowdSystem:
             if self.__needRepairing(message):
                 # 构建新的T和R
                 print("### MASys: start self repairing ###")
-                k = int(self.__repair_k * len(self.__robots))
+                k = int(self.__repair_k * len(self.robots))
                 new_tasks, new_robots = self.__constructNewPlan(message, k)
                 yield FeedBack(1, new_robots)
                 self.__base_algorithm.new_allocationPlan(new_tasks, new_robots, self.senseMap)
@@ -80,7 +80,7 @@ class MACrowdSystem:
 
     """ utility functions """
     def __execMissions(self):
-        for r in self.__robots:
+        for r in self.robots:
             r.executeMissions()
         message = yield
         while True:
@@ -100,20 +100,20 @@ class MACrowdSystem:
 
     def __constructNewPlan(self, message, k) -> Tuple[List[Task], List[Robot]]:
         assert message.status_code != 0
-        if k == len(self.__robots):
-            new_task = list(filter(lambda t: not t.isFinished, self.__tasks))
-            new_robot = list(filter(lambda robot: not robot.isBroken, self.__robots))
+        if k == len(self.robots):
+            new_task = list(filter(lambda t: not t.isFinished, self.tasks))
+            new_robot = list(filter(lambda robot: not robot.isBroken, self.robots))
             return new_task, new_robot
 
         target_r = None
-        for r in self.__robots:
+        for r in self.robots:
             if r.id == message.robot_id:
                 target_r = r
                 break
         assert target_r == message.robot
 
         most_near = queue.PriorityQueue(k)
-        for r in self.__robots:
+        for r in self.robots:
             most_near.put((target_r.distBetweenRobot(r), r))
 
         new_robots: List[Robot] = [t[1] for t in most_near.queue]
