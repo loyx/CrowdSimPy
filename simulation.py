@@ -20,6 +20,9 @@ class Event:
     def __repr__(self):
         return f"Event(time:{self.time}, robot:{self.robot}, action:{self.action})"
 
+    def __iter__(self):
+        return (i for i in (self.time, self.robot, self.action))
+
     def __lt__(self, other):
         return self.time < other.time
 
@@ -79,7 +82,7 @@ class Simulator:
         robot: Robot
         while sim_time < end_time:
             # if self.events.empty():
-            if len(self.events):
+            if len(self.events) == 0:
                 print("*** end of events ***")
                 break
 
