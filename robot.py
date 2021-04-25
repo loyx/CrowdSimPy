@@ -185,6 +185,7 @@ class Robot:
         """
         机器人在reg区域执行task的可能_时间点_和使用的传感器
         """
+        # todo 时间bug
         adequate_sensors = set(filter(lambda s: task.adequateSensor(s), self.C.sensors))
         return ((self.idealFinishTime(reg, s), s) for s in adequate_sensors)
 

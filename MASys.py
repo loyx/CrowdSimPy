@@ -134,20 +134,22 @@ class MACrowdSystem:
 class BaseAlgorithm(ABC):
 
     def __init__(self, gamma=1):
-        self._robots: List[Robot] = []
-        self._tasks: List[Task] = []
-        self._sense_map: Optional[SenseMap] = None
-        self._kappa = None
+        self.robots: List[Robot] = []
+        self.tasks: List[Task] = []
+        self.sense_map: Optional[SenseMap] = None
+        self.kappa = None
 
         self.allocationPlan = {}
+        self.sampleRecord = {}
         self.GAMMA = gamma
 
     def new_allocationPlan(self, tasks, robots, s_map, kappa=0.03):
-        self._tasks = tasks
-        self._robots = robots
-        self._sense_map = s_map
-        self._kappa = kappa
+        self.tasks = tasks
+        self.robots = robots
+        self.sense_map = s_map
+        self.kappa = kappa
         self.allocationPlan.clear()
+        self.sampleRecord.clear()
         assert not self.allocationPlan
 
     @abstractmethod
@@ -158,15 +160,15 @@ class BaseAlgorithm(ABC):
 
     def totalCov(self):
         cov = 0
-        for task in self._tasks:
+        for task in self.tasks:
             s = sum(self.allocationPlan.get((task.id, reg.id, r.id), 0)
                     for reg in task.TR
-                    for r in self._robots)
+                    for r in self.robots)
             cov += s / len(task.TR) / self.GAMMA
         return cov
 
     def robotDis(self):
-        return sum(map(methodcaller('moveDistance'), self._robots))
+        return sum(map(methodcaller('moveDistance'), self.robots))
 
 
 class GreedyBaseAlgor(BaseAlgorithm):
@@ -177,42 +179,64 @@ class GreedyBaseAlgor(BaseAlgorithm):
         self.LAMBDAS = lambdas
 
     def allocationTasks(self):
-        task_in_reg = {}
-        for task in self._tasks:
-            if task.isFinished:
-                continue
+        record_u = {}
+        for task in self.tasks:
             for reg in task.TR:
-                if not task.finished_reg[reg.id]:
-                    task_in_reg.setdefault(reg, []).append(task)
-
-        for reg, tasks in task_in_reg.items():
-            task: Task
-            for task in tasks:
-                u_max = None
-                r_max = None
-                s_select = None
-                for rob in self._robots:
-                    finish_time, select_sensors = min(rob.possiblePlan(reg, task))
-                    sample_times = self.allocationPlan.get((task, reg, rob), 0)
-                    if finish_time not in task.timeRange or not select_sensors or sample_times >= self.GAMMA:
+                for r in self.robots:
+                    finish_time, select_sensor = min(r.possiblePlan(reg, task))
+                    if finish_time not in task.timeRange or not select_sensor:
                         continue
-                    u = self.__DeltaUtility(reg, rob, finish_time)
-                    if u_max is None or u > u_max:
-                        u_max = u
-                        r_max = rob
-                        s_select = select_sensors
-                if r_max:
-                    r_max.assignTask(reg, task, s_select)
-                    ap = (task.id, reg.id, r_max.id)
-                    self.allocationPlan[ap] = self.allocationPlan.get(ap, 0) + 1
+                    record_u[task, reg, r] = self.__DeltaUtility(reg, r, finish_time), select_sensor
+        test = [(value[0], key) for key, value in record_u.items()]
+        test.sort(key=lambda x: x[0], reverse=True)
+        for v, (t, reg, r) in test:
+            print(v, reg, r)
+
+        while True:
+
+            # 贪心选取一种分配方案
+            max_u_s = None
+            max_key = None
+            for key, u_s in record_u.items():
+                if self.sampleRecord.get((key[0].id, key[1].id), 0) >= self.GAMMA:
+                    continue
+                if not max_u_s or u_s > max_u_s:
+                    max_u_s = u_s
+                    max_key = key
+            if max_key is None:
+                break
+            task, reg, robot_star = max_key
+            robot_star: Robot
+            _, sensor = max_u_s
+
+            # 分配任务
+            robot_star.assignTask(reg, task, sensor)
+            self.allocationPlan[task.id, reg.id, robot_star.id] = 1
+            try:
+                self.sampleRecord[task.id, reg.id] += 1
+            except KeyError:
+                self.sampleRecord[task.id, reg.id] = 1
+
+            # 清除该记录
+            del record_u[task, reg, robot_star]
+
+            # 更新该机器人与其他任务的$\Delta U$
+            for task in self.tasks:
+                for reg in task.TR:
+                    if self.allocationPlan.get((task.id, reg.id, robot_star.id), 0):
+                        continue
+                    finish_time, select_sensor = min(robot_star.possiblePlan(reg, task))
+                    if finish_time not in task.timeRange or not select_sensor:
+                        continue
+                    record_u[task, reg, robot_star] = self.__DeltaUtility(reg, robot_star, finish_time), select_sensor
 
     def __DeltaUtility(self, reg: Region, r: Robot, at: int):
         f1 = self.THETAS[0] * 1 / self.LAMBDAS[0]
         f2 = self.THETAS[1] * (r.C.interD(r.planned_path[-1], reg) + r.C.intraD(reg)) / self.LAMBDAS[1]
 
         try:
-            ts = list(itertools.takewhile(lambda t: at in t, self._sense_map.TimeSlots))[0]
+            ts = list(itertools.takewhile(lambda t: at in t, self.sense_map.TimeSlots))[0]
         except IndexError:
             raise ValueError(f"error arrival time {at}")
-        f3 = self.THETAS[2] * self._sense_map.acquireFunction((reg, ts, r.C), self._kappa) / self.LAMBDAS[2]
+        f3 = self.THETAS[2] * self.sense_map.acquireFunction((reg, ts, r.C), self.kappa) / self.LAMBDAS[2]
         return f1 - f2 + f3

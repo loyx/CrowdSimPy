@@ -10,7 +10,7 @@ class UAV(RobotCategory):
         super().__init__(rc_id, category, sensors, move_mode, v, physical_property)
 
     def interD(self, reg1: Region, reg2: Region) -> float:
-        return EuclideanDistance(reg1.randomLoc(), reg2.randomLoc())
+        return EuclideanDistance(reg1.represent_loc, reg2.represent_loc)
 
     def intraD(self, reg: Region) -> float:
         return 2 * sum(reg.len) * self.intra_factor
@@ -32,7 +32,7 @@ class UV(RobotCategory):
         super().__init__(rc_id, category, sensors, move_mode, v, physical_property)
 
     def interD(self, reg1: Region, reg2: Region) -> float:
-        return ManhattanDistance(reg1.randomLoc(), reg2.randomLoc())
+        return ManhattanDistance(reg1.represent_loc, reg2.represent_loc)
 
     def intraD(self, reg: Region) -> float:
         return 2 * sum(reg.len) * self.intra_factor
