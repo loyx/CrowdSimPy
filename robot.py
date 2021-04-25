@@ -31,10 +31,16 @@ class RobotCategory(ABC):
         self.physical_property: dict = physical_property
 
     def dissimilarity(self, other: 'RobotCategory') -> float:
-        dis = dataDiff(self.move_mode, other.move_mode)
-        dis += dataDiff(self.v, other.v)
+        # todo 速度优化
+        # dis = dataDiff(self.move_mode, other.move_mode)
+        dis = int(self.move_mode == other.move_mode)
+        # dis += dataDiff(self.v, other.v)
+        dis += abs(self.v - other.v)
         for key, val in self.physical_property.items():
-            dis += dataDiff(val, self.physical_property.get(key))
+            other_val = self.physical_property.get(key)
+            # assert isinstance(other_val, numbers.Real)
+            # dis += dataDiff(val, other_val)
+            dis += abs(val - other_val)
         return dis
 
     def __repr__(self):
