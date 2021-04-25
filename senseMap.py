@@ -122,7 +122,7 @@ class SenseMap:
 
         if len(self.__history) > self.__history_len:
             self.__new_update_cycle()
-        self.__history.append(History(r_pref, MapPoint(reg, ts, r.C)))
+        self.__history.append(History(r_pref, MapPoint(reg.id, ts.id, r.C.id)))
 
     def acquireFunction(self, key: tuple, kappa):
         return self[key][0] + kappa * self[key][1]
@@ -136,7 +136,7 @@ class SenseMap:
         self.update_times = 0
 
     def __update_gaussian_process(self):
-        p_diff = np.array([r_perf - self.__prior_map[key]] for r_perf, key in self.__history)
+        p_diff = np.array([r_perf - self.__prior_map[key] for r_perf, key in self.__history])
         covariance = [[self.__matern(x.m_point, y.m_point) for x in self.__history] for y in self.__history]
         cov_k_inv = np.linalg.inv(np.array(covariance) + self.SIGMA_NOISE * np.eye(len(self.__history)))
 

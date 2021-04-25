@@ -31,10 +31,10 @@ def physicalRobot(robot: Robot, start_time=0):
     assert robot.state == robot.idleState
     # robot 预激后，由MASys负责分配任务，并启动所有robot
     # 因而下一个yield时，robot的状态应该为MovingState
-    time = yield Event(start_time, robot, "init moving")
-    # 所有的robot都应从0开始计时，由Simulator估计moving时间
+    time = yield Event(start_time, robot, "init")
+    # 所有的robot都应从0开始计时，由Simulator估计moving时间，或者robot未被分配任务，处于IdleState
 
-    assert robot.state == robot.movingState
+    assert robot.state == robot.movingState or robot.state == robot.idleState
     while not robot.isFinishMissions:  # todo 优化：brokenState
         # 因为robot的激活和规划由MASys完成，因而此循环里只有moving和sensing状态
         # 同时，我们应当假设idle，planing状态不花费时间
@@ -45,9 +45,9 @@ def physicalRobot(robot: Robot, start_time=0):
         # 返回SensingState Robot，有Simulator估计Sensing时间
 
         time = yield Event(time, robot, "start moving")
-        assert robot.state == robot.movingState
+        assert robot.state == robot.movingState or robot.state == robot.idleState
         # robot.submitTasks()  # robot完成感知提交任务
-        # 返回MovingState Robot，由Simulator估计下一个Moving的时间
+        # 返回MovingState Robot，由Simulator估计下一个Moving的时间，或完成所有任务处于Idle状态
 
         # robot 以 (移动-感知) 为一个操作周期，直至分配给其的任务执行完成
 
@@ -88,9 +88,10 @@ class Simulator:
 
             # sim_time, robot, action = self.events.get()
             sim_time, robot, action = heapq.heappop(self.events)
+            print("time:", sim_time, robot.id * '  ', robot, action)
 
             # 这些操作发生在状态转化的那个瞬间  # todo 优化：brokenState
-            if action == "init moving":
+            if action == "init":
                 feed_back = FeedBack(0)
             elif robot.state == robot.movingState:
                 if self.realWorld.canSense(robot):
@@ -110,7 +111,6 @@ class Simulator:
                 raise RuntimeError("error robot")
 
             if feed_back.status_code == 0:
-                print("time:", sim_time, robot.id * '  ', robot)
                 next_time = sim_time + self.realWorld.compute_duration(robot)
                 active_p_robot = self.p_robots[robot.id]
                 try:

@@ -10,10 +10,10 @@ from RobotState import IdleState, MovingState, SensingState, BrokenState
 def dataDiff(data1, data2):
     if bool(data1) ^ bool(data2):
         return 0.5
-    if type(data1) != type(data2):
-        raise TypeError("{}{} are different data type".format(type(data1), type(data2)))
     if isinstance(data1, numbers.Real):
         return abs(data1 - data2)
+    elif type(data1) != type(data2):
+        raise TypeError("{}{} are different data type".format(type(data1), type(data2)))
     elif isinstance(data1, str):
         return int(data1 == data2)
     else:

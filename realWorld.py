@@ -25,9 +25,13 @@ class RealWorld:
             ideal_time = robot.ideal_sensing_time[robot.current_cursor]
             reg_rate = self.reg_info[robot.current_task_region.id][index]
             return ideal_time*(1-reg_rate)*self.thetas[index]
-        else:
+        elif robot.state == robot.movingState:
             ideal_time = robot.ideal_moving_time[robot.current_cursor]
             return ideal_time*random.uniform(1, self.moving_affect)
+        elif robot.state == robot.idleState:
+            return 0
+        else:
+            raise RuntimeError(f"error state{robot.state} when compute duration")
 
     def canSense(self, robot: Robot) -> bool:
         for i, cls in enumerate(RealWorld.SIM_ROB):
