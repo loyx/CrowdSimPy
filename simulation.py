@@ -88,19 +88,23 @@ class Simulator:
 
             # sim_time, robot, action = self.events.get()
             sim_time, robot, action = heapq.heappop(self.events)
-            print("time:", sim_time, robot.id * '  ', robot, action)
+            print("time:", sim_time, robot.id * '  ', robot, action, end=' ')
 
             # 这些操作发生在状态转化的那个瞬间  # todo 优化：brokenState
             if action == "init":
+                print("start moving")
                 feed_back = FeedBack(0)
             elif robot.state == robot.movingState:
                 if self.realWorld.canSense(robot):
+                    print("can sense this reg")
                     robot.sense()
                     feed_back = FeedBack(0)
                 else:
+                    print("cannot sense this reg!")
                     message = Message(3, robot.id, robot, robot.current_region, sim_time)
                     feed_back: FeedBack = sim_sys.send(message)
             elif robot.state == robot.sensingState:
+                print("robot submitTask")
                 robot.submitTasks(sim_time)
                 if robot.canFinishTaskInTime(sim_time):
                     message = Message(0, robot.id, robot, robot.current_region, sim_time)
