@@ -18,7 +18,7 @@ def pltRobotPath(ax: Axes, robot: Robot):
     points = [reg.randomLoc() for reg in robot.planned_path]
     x = [p[0] for p in points]
     y = [p[1] for p in points]
-    ax.plot(x, y, '-'+colors[robot.C.id], linewidth=2)
+    return ax.plot(x, y, '-'+colors[robot.C.id], linewidth=2)
 
 
 def pltMASys(ma_sys: MACrowdSystem):
@@ -38,18 +38,32 @@ def pltMASys(ma_sys: MACrowdSystem):
     # plt sense area
     pltSenseArea(ax, ma_sys.sense_area)
 
+    legend_line = []
+    legend_label = []
     # plt tasks
     for task in ma_sys.tasks:
         for reg in task.TR:
             pos = reg.randomLoc()
-            ax.plot(pos[0], pos[1], 'r*', markersize=3)
+            line = ax.plot(pos[0], pos[1], 'r*', markersize=3)
+            if not legend_line:
+                legend_line.append(line[0])
+                legend_label.append('tasks')
+                # line.set_label('task')
+    # ax.legend(['tasks'], loc=2, bbox_to_anchor=(1.05, 1), borderaxespad=0)
 
     styles = ['gx', 'y>', 'bo', 'kH']
+    plted = [False] * len(styles)
     # plt robots
     for robot in ma_sys.robots:
-        # print(robot.location)
         ax.plot(robot.location[0], robot.location[1], styles[robot.C.id], markersize=3)
-        pltRobotPath(ax, robot)
+        line = pltRobotPath(ax, robot)
+        if not plted[robot.C.id]:
+            legend_line.append(line[0])
+            legend_label.append(type(robot.C).__name__)
+            # line.set_label(type(robot.C).__name__)
+            plted[robot.C.id] = True
 
-    plt.show(dpi=500)
+    ax.legend(legend_line, legend_label, loc=2, bbox_to_anchor=(1.05, 1), borderaxespad=0)
+    # ax.legend(loc=2, bbox_to_anchor=(1.05, 1), borderaxespad=0)
+    plt.show()
     # plt.savefig("ma_sys.png", dpi=1000)
