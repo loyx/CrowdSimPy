@@ -56,6 +56,9 @@ class Region(Area):
         assert self.len[0] == self.len[1]
         self.id = rid
 
+        # for plt
+        self.represent_loc = self.randomLoc()
+
     def __repr__(self):
         return "Region(id:{0}, center:<{1[0]},{1[1]}>, size:{2})".format(
             self.id,

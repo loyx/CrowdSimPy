@@ -15,7 +15,7 @@ def pltSenseArea(ax, sense_area: SenseArea):
 
 def pltRobotPath(ax: Axes, robot: Robot):
     colors = ['g', 'y', 'b', 'k']
-    points = [reg.randomLoc() for reg in robot.planned_path]
+    points = [reg.represent_loc for reg in robot.planned_path]
     x = [p[0] for p in points]
     y = [p[1] for p in points]
     return ax.plot(x, y, '-'+colors[robot.C.id], linewidth=0.5)
@@ -43,7 +43,7 @@ def pltMASys(ma_sys: MACrowdSystem):
     # plt tasks
     for task in ma_sys.tasks:
         for reg in task.TR:
-            pos = reg.randomLoc()
+            pos = reg.represent_loc
             line = ax.plot(pos[0], pos[1], 'r*', markersize=3)
             if not legend_line:
                 legend_line.append(line[0])
@@ -55,7 +55,8 @@ def pltMASys(ma_sys: MACrowdSystem):
     plted = [False] * len(styles)
     # plt robots
     for robot in ma_sys.robots:
-        ax.plot(robot.location[0], robot.location[1], styles[robot.C.id], markersize=3)
+        init_robot_loc = robot.init_reg.represent_loc
+        ax.plot(init_robot_loc[0], init_robot_loc[1], styles[robot.C.id], markersize=3)
         line = pltRobotPath(ax, robot)
         if not plted[robot.C.id]:
             legend_line.append(line[0])
