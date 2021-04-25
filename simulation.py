@@ -31,7 +31,7 @@ def physicalRobot(robot: Robot, start_time=0):
     assert robot.state == robot.idleState
     # robot 预激后，由MASys负责分配任务，并启动所有robot
     # 因而下一个yield时，robot的状态应该为MovingState
-    time = yield Event(start_time, robot, "start moving")
+    time = yield Event(start_time, robot, "init moving")
     # 所有的robot都应从0开始计时，由Simulator估计moving时间
 
     assert robot.state == robot.movingState
@@ -90,7 +90,9 @@ class Simulator:
             sim_time, robot, action = heapq.heappop(self.events)
 
             # 这些操作发生在状态转化的那个瞬间  # todo 优化：brokenState
-            if robot.state == robot.movingState:
+            if action == "init moving":
+                feed_back = FeedBack(0)
+            elif robot.state == robot.movingState:
                 if self.realWorld.canSense(robot):
                     robot.sense()
                     feed_back = FeedBack(0)

@@ -32,7 +32,7 @@ class RealWorld:
     def canSense(self, robot: Robot) -> bool:
         for i, cls in enumerate(RealWorld.SIM_ROB):
             if isinstance(robot.C, cls):
-                if self.reg_info[robot.current_task_region.id] < self.thresholds[i]:
+                if self.reg_info[robot.current_task_region.id][i] < self.thresholds[i]:
                     return False
                 else:
                     return True
