@@ -1,4 +1,5 @@
 import itertools
+import math
 import operator
 import queue
 from abc import ABC, abstractmethod
@@ -188,7 +189,7 @@ class GreedyBaseAlgor(BaseAlgorithm):
         for reg, tasks in task_in_reg.items():
             task: Task
             for task in tasks:
-                u_max = 0
+                u_max = None
                 r_max = None
                 s_select = None
                 for rob in self._robots:
@@ -197,7 +198,7 @@ class GreedyBaseAlgor(BaseAlgorithm):
                     if finish_time not in task.timeRange or not select_sensors or sample_times >= self.GAMMA:
                         continue
                     u = self.__DeltaUtility(reg, rob, finish_time)
-                    if u > u_max:
+                    if u_max is None or u > u_max:
                         u_max = u
                         r_max = rob
                         s_select = select_sensors
@@ -214,4 +215,4 @@ class GreedyBaseAlgor(BaseAlgorithm):
         except IndexError:
             raise ValueError(f"error arrival time {at}")
         f3 = self.THETAS[2] * self._sense_map.acquireFunction((reg, ts, r.C), self._kappa) / self.LAMBDAS[2]
-        return f1 + f2 + f3
+        return f1 - f2 + f3
