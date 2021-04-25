@@ -160,6 +160,10 @@ class Robot:
             return True
 
     @property
+    def currentTasks(self):
+        return self.task_in_reg[self.current_cursor]
+
+    @property
     def isFinishMissions(self):
         return self.current_cursor >= len(self.planned_path) and self.state == self.idleState
 

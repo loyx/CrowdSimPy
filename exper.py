@@ -11,7 +11,7 @@ from realWorld import RealWorld
 from resultDisplay import pltMASys
 
 # experiment parameters
-RANDOM_SEED = None
+RANDOM_SEED = 1
 UAV_NUMS = 5
 UV_NUMS = 8
 SMALL_UV_NUMS = 12
@@ -157,7 +157,7 @@ real_word = RealWorld(len(Regions), (0, 0, 0), (1, 1, 1))
 physical_robots = {r.id: physicalRobot(r) for r in all_robots}
 sim_sys = Simulator(physical_robots, multi_agents_system, real_word)
 
-# sim_sys.run(time_long)
-sim_sys.run(2)
+sim_sys.run(time_long)
+# sim_sys.run(2)
 
 pltMASys(multi_agents_system)

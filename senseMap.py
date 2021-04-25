@@ -101,7 +101,7 @@ class SenseMap:
             self[key] = (mu, sigma)
 
     def update(self, reg: Region, rt: float, r: Robot):
-        print("-"*10, "SenseMap: updating", "-"*10)
+        print(" "*25, "-"*10, "SenseMap: updating", "-"*10)
         t_ideal = r.C.intraD(reg) / r.C.v
 
         # senseMap 的Update发生在robot submit之后，此时cursor指向下一个目标任务
