@@ -63,7 +63,7 @@ def pltMASys(ma_sys: MACrowdSystem):
             # line.set_label(type(robot.C).__name__)
             plted[robot.C.id] = True
 
-    ax.legend(legend_line, legend_label, loc=2, bbox_to_anchor=(1.05, 1), borderaxespad=0)
+    ax.legend(legend_line, legend_label, loc=2, bbox_to_anchor=(1.03, 1), borderaxespad=0)
     # ax.legend(loc=2, bbox_to_anchor=(1.05, 1), borderaxespad=0)
     plt.show()
     # plt.savefig("ma_sys.png", dpi=1000)

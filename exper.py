@@ -151,10 +151,11 @@ for task in tasks:
 # real word
 real_word = RealWorld(len(Regions), (0, 0, 0), (1, 1, 1))
 
-pltMASys(multi_agents_system)
 
 # sim
 physical_robots = {r.id: physicalRobot(r) for r in all_robots}
 sim_sys = Simulator(physical_robots, multi_agents_system, real_word)
 
 sim_sys.run(time_long)
+
+pltMASys(multi_agents_system)
