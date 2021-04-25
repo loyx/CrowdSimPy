@@ -69,7 +69,7 @@ class Task:
         return "Task(id:{}, sensor{}, {}, {})".format(
             self.id,
             self.__required_sensor.id,
-            self.area,
+            self.TR,
             self.timeRange
         )
 

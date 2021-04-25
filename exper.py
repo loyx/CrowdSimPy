@@ -139,7 +139,8 @@ for i in range(TASK_NUMS):
     ep = Point(sp[0] + grid_granularity / 2, sp[1] + grid_granularity / 2)
     task_area = SenseArea(sp, ep)
     st = random.randrange(0, time_long)
-    task_time = TimeRange(st, st + 60 * 60)
+    # task_time = TimeRange(st, st + 60 * 60)
+    task_time = TimeRange(0, time_long)
     tasks.append(Task(i, sensors[0], task_area, task_time))
 print(tasks)
 

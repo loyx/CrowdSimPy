@@ -194,13 +194,13 @@ class GreedyBaseAlgor(BaseAlgorithm):
                 for rob in self._robots:
                     finish_time, select_sensors = min(rob.possiblePlan(reg, task))
                     sample_times = self.allocationPlan.setdefault((task, reg, rob), 0)
-                    if finish_time not in task.timeRange or not select_sensors and sample_times < self.GAMMA:
+                    if finish_time not in task.timeRange or not select_sensors or sample_times >= self.GAMMA:
                         continue
                     u = self.__DeltaUtility(reg, rob, finish_time)
                     if u > u_max:
                         u_max = u
                         r_max = rob
-                        s_select = select_sensors.pop()
+                        s_select = select_sensors
                 if r_max:
                     r_max.assignTask(reg, task, s_select)
                     self.allocationPlan[(task, reg, r_max)] += 1

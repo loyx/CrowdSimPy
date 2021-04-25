@@ -67,7 +67,7 @@ class SenseMap:
             if not isinstance(keys[index], int) and not isinstance(keys[index], i_class):
                 raise IndexError(f"key[{index}] need int or {i_class.__name__}")
 
-        keys = tuple(x.getattr("id") if type(x) != int else x for x in keys)
+        keys = tuple(getattr(x, "id") if type(x) != int else x for x in keys)
         if any(i >= j for i, j in zip(keys, self.size)):
             raise IndexError("SenseMap index out of range")
         return MapPoint(*keys)

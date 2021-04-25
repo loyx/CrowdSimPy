@@ -18,7 +18,7 @@ def pltRobotPath(ax: Axes, robot: Robot):
     points = [reg.randomLoc() for reg in robot.planned_path]
     x = [p[0] for p in points]
     y = [p[1] for p in points]
-    return ax.plot(x, y, '-'+colors[robot.C.id], linewidth=2)
+    return ax.plot(x, y, '-'+colors[robot.C.id], linewidth=0.5)
 
 
 def pltMASys(ma_sys: MACrowdSystem):

@@ -37,6 +37,7 @@ class RobotState(ABC):
         # update task and sensor record
         self.robot.task_in_reg.append([task])
         self.robot.sensor_in_reg.append([used_sensor])
+        self.robot.planned_path.append(reg)
 
         # update time record
         time_used = ideal_time - self.robot.finish_time[-1]
