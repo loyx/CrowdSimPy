@@ -159,7 +159,7 @@ class BaseAlgorithm(ABC):
     def totalCov(self):
         cov = 0
         for task in self._tasks:
-            s = sum(self.allocationPlan.setdefault((task.id, reg.id, r.id), 0)
+            s = sum(self.allocationPlan.get((task.id, reg.id, r.id), 0)
                     for reg in task.TR
                     for r in self._robots)
             cov += s / len(task.TR) / self.GAMMA
@@ -193,7 +193,7 @@ class GreedyBaseAlgor(BaseAlgorithm):
                 s_select = None
                 for rob in self._robots:
                     finish_time, select_sensors = min(rob.possiblePlan(reg, task))
-                    sample_times = self.allocationPlan.setdefault((task, reg, rob), 0)
+                    sample_times = self.allocationPlan.get((task, reg, rob), 0)
                     if finish_time not in task.timeRange or not select_sensors or sample_times >= self.GAMMA:
                         continue
                     u = self.__DeltaUtility(reg, rob, finish_time)
@@ -203,7 +203,8 @@ class GreedyBaseAlgor(BaseAlgorithm):
                         s_select = select_sensors
                 if r_max:
                     r_max.assignTask(reg, task, s_select)
-                    self.allocationPlan[(task, reg, r_max)] += 1
+                    ap = (task.id, reg.id, r_max.id)
+                    self.allocationPlan[ap] = self.allocationPlan.get(ap, 0) + 1
 
     def __DeltaUtility(self, reg: Region, r: Robot, at: int):
         f1 = self.THETAS[0] * 1 / self.LAMBDAS[0]
