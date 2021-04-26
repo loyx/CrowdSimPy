@@ -12,10 +12,10 @@ from resultDisplay import pltMASys
 
 # experiment parameters
 RANDOM_SEED = 1
-UAV_NUMS = 3
+UAV_NUMS = 4
 UV_NUMS = 8
 SMALL_UV_NUMS = 12
-TASK_NUMS = 50
+TASK_NUMS = 60
 
 area_len = 2_000
 grid_granularity = 100
