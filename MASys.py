@@ -182,12 +182,12 @@ class GreedyBaseAlgorithm(BaseAlgorithm, ABC):
     def allocationTasks(self):
         pass
 
-    def __DeltaUtility(self, reg: Region, r: Robot, at: int):
+    def DeltaUtility(self, reg: Region, r: Robot, at: int):
         f1 = self.THETAS[0] * 1 / self.LAMBDAS[0]
         f2 = self.THETAS[1] * (r.C.interD(r.planned_path[-1], reg) + r.C.intraD(reg)) / self.LAMBDAS[1]
 
         try:
-            ts = list(itertools.takewhile(lambda t: at in t, self.sense_map.TimeSlots))[0]
+            ts = list(filter(lambda t: at in t, self.sense_map.TimeSlots))[0]
         except IndexError:
             raise ValueError(f"error arrival time {at}")
         f3 = self.THETAS[2] * self.sense_map.acquireFunction((reg, ts, r.C), self.kappa) / self.LAMBDAS[2]
@@ -204,7 +204,7 @@ class RobotOrientAlgorithm(GreedyBaseAlgorithm):
                     finish_time, select_sensor = min(r.possiblePlan(reg, task))
                     if finish_time not in task.timeRange or not select_sensor:
                         continue
-                    record_u[task, reg, r] = self.__DeltaUtility(reg, r, finish_time), select_sensor
+                    record_u[task, reg, r] = self.DeltaUtility(reg, r, finish_time), select_sensor
         test = [(value[0], key) for key, value in record_u.items()]
         test.sort(key=lambda x: x[0], reverse=True)
         for v, (t, reg, r) in test:
@@ -246,8 +246,8 @@ class RobotOrientAlgorithm(GreedyBaseAlgorithm):
                     finish_time, select_sensor = min(robot_star.possiblePlan(reg, task))
                     if finish_time not in task.timeRange or not select_sensor:
                         continue
-                    record_u[task, reg, robot_star] = self.__DeltaUtility(reg, robot_star,
-                                                                          finish_time), select_sensor
+                    record_u[task, reg, robot_star] = self.DeltaUtility(reg, robot_star,
+                                                                        finish_time), select_sensor
 
 
 class TaskOrientAlgorithm(GreedyBaseAlgorithm):
@@ -272,7 +272,7 @@ class TaskOrientAlgorithm(GreedyBaseAlgorithm):
                     sample_times = self.allocationPlan.get((task, reg, rob), 0)
                     if finish_time not in task.timeRange or not select_sensors or sample_times >= self.GAMMA:
                         continue
-                    u = self.__DeltaUtility(reg, rob, finish_time)
+                    u = self.DeltaUtility(reg, rob, finish_time)
                     if u_max is None or u > u_max:
                         u_max = u
                         r_max = rob
