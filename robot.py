@@ -115,6 +115,9 @@ class Robot:
         return "Robot(id:{}, c:{}, {}, loc:Region{})"\
             .format(self.id, type(self.C).__name__, self.state, self.init_reg.id)
 
+    def __str__(self):
+        return f"Robot({self.id}, {self.state})"
+
     """ robot actions """
     def assignTask(self, reg, task, used_sensor):
         # state

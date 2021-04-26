@@ -1,6 +1,6 @@
 import random
 
-from MASys import MACrowdSystem, GreedyBaseAlgor
+from MASys import MACrowdSystem, TaskOrientAlgorithm, RobotOrientAlgorithm
 from senseArea import SenseArea, Point
 from task import TimeRange, Task
 from concreteRobot import UAV, UV, SmallUV
@@ -12,12 +12,15 @@ from resultDisplay import pltMASys
 
 # experiment parameters
 RANDOM_SEED = 1
-UAV_NUMS = 5
+UAV_NUMS = 3
 UV_NUMS = 8
 SMALL_UV_NUMS = 12
-TASK_NUMS = 30
+TASK_NUMS = 50
 
-area_len = 100
+area_len = 2_000
+grid_granularity = 100
+time_long = 86400
+time_granularity = 3600
 
 # experiment setting
 random.seed(RANDOM_SEED)
@@ -27,16 +30,13 @@ print("*** System sense area ***")
 start_point = Point(0, 0)
 end_point = Point(area_len, area_len)
 sense_area = SenseArea(start_point, end_point)
-grid_granularity = 5
 print(sense_area)
 print()
 
 # system time range
 print('*** system time range ***')
 
-time_long = 86400
 sys_time_range = TimeRange(0, time_long)
-time_granularity = 3600
 print(sys_time_range)
 print()
 
@@ -77,23 +77,25 @@ print(small_uv_category)
 print()
 
 # task allocation algorithm
-algorithm = GreedyBaseAlgor()
+task_algorithm = TaskOrientAlgorithm()
+robot_algorithm = RobotOrientAlgorithm()
 
 # MASys
-multi_agents_system = MACrowdSystem(
+MASys1 = MACrowdSystem(
     sense_area,
     grid_granularity,
     sys_time_range,
     time_granularity,
     [uav_category, uv_category, small_uv_category],
-    algorithm,
+    # task_algorithm,
+    robot_algorithm
 )
 print("*** senseMap ***")
-print(multi_agents_system.senseMap)
+print(MASys1.senseMap)
 print()
 
 print("*** sense Regions ***")
-Regions = multi_agents_system.Regions
+Regions = MASys1.Regions
 print(Regions)
 print()
 
@@ -129,7 +131,7 @@ all_robots.extend(uav_robots)
 all_robots.extend(uv_robots)
 all_robots.extend(small_uv_robots)
 for r in all_robots:
-    multi_agents_system.registerRobot(r)
+    MASys1.registerRobot(r)
 
 # tasks
 tasks = []
@@ -146,7 +148,7 @@ print(tasks)
 
 # publish tasks
 for task in tasks:
-    multi_agents_system.publishTask(task)
+    MASys1.publishTask(task)
     # print(task.TR)
 
 # real word
@@ -155,9 +157,9 @@ real_word = RealWorld(len(Regions), (0, 0, 0), (1, 1, 1))
 
 # sim
 physical_robots = {r.id: physicalRobot(r) for r in all_robots}
-sim_sys = Simulator(physical_robots, multi_agents_system, real_word)
+sim_sys = Simulator(physical_robots, MASys1, real_word)
 
-sim_sys.run(time_long)
-# sim_sys.run(2)
+# sim_sys.run(time_long)
+sim_sys.run(30)
 
-pltMASys(multi_agents_system)
+pltMASys(MASys1)

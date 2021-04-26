@@ -1,7 +1,7 @@
 import matplotlib.pyplot as plt
 import matplotlib as mpl
 from matplotlib.axes import Axes
-from matplotlib.pyplot import MultipleLocator
+from matplotlib.pyplot import MultipleLocator, Locator
 
 from senseArea import SenseArea
 from MASys import MACrowdSystem
@@ -32,6 +32,8 @@ def pltMASys(ma_sys: MACrowdSystem):
     locator = MultipleLocator(ma_sys.grid_granularity)
     ax.xaxis.set_minor_locator(locator)
     ax.yaxis.set_minor_locator(locator)
+    ax.xaxis.set_major_locator(MultipleLocator(2*ma_sys.grid_granularity))
+    ax.yaxis.set_major_locator(MultipleLocator(2*ma_sys.grid_granularity))
     ax.set_aspect('equal')
     ax.grid(True, 'both', alpha=0.7)
 
