@@ -171,12 +171,30 @@ class BaseAlgorithm(ABC):
         return sum(map(methodcaller('moveDistance'), self.robots))
 
 
-class GreedyBaseAlgor(BaseAlgorithm):
+class GreedyBaseAlgorithm(BaseAlgorithm, ABC):
 
     def __init__(self, gamma=1, thetas=(1, 1, 1), lambdas=(1, 1, 1)):
         super().__init__(gamma)
         self.THETAS = thetas
         self.LAMBDAS = lambdas
+
+    @abstractmethod
+    def allocationTasks(self):
+        pass
+
+    def __DeltaUtility(self, reg: Region, r: Robot, at: int):
+        f1 = self.THETAS[0] * 1 / self.LAMBDAS[0]
+        f2 = self.THETAS[1] * (r.C.interD(r.planned_path[-1], reg) + r.C.intraD(reg)) / self.LAMBDAS[1]
+
+        try:
+            ts = list(itertools.takewhile(lambda t: at in t, self.sense_map.TimeSlots))[0]
+        except IndexError:
+            raise ValueError(f"error arrival time {at}")
+        f3 = self.THETAS[2] * self.sense_map.acquireFunction((reg, ts, r.C), self.kappa) / self.LAMBDAS[2]
+        return f1 - f2 + f3
+
+
+class RobotOrientAlgorithm(GreedyBaseAlgorithm):
 
     def allocationTasks(self):
         record_u = {}
@@ -228,15 +246,38 @@ class GreedyBaseAlgor(BaseAlgorithm):
                     finish_time, select_sensor = min(robot_star.possiblePlan(reg, task))
                     if finish_time not in task.timeRange or not select_sensor:
                         continue
-                    record_u[task, reg, robot_star] = self.__DeltaUtility(reg, robot_star, finish_time), select_sensor
+                    record_u[task, reg, robot_star] = self.__DeltaUtility(reg, robot_star,
+                                                                          finish_time), select_sensor
 
-    def __DeltaUtility(self, reg: Region, r: Robot, at: int):
-        f1 = self.THETAS[0] * 1 / self.LAMBDAS[0]
-        f2 = self.THETAS[1] * (r.C.interD(r.planned_path[-1], reg) + r.C.intraD(reg)) / self.LAMBDAS[1]
 
-        try:
-            ts = list(itertools.takewhile(lambda t: at in t, self.sense_map.TimeSlots))[0]
-        except IndexError:
-            raise ValueError(f"error arrival time {at}")
-        f3 = self.THETAS[2] * self.sense_map.acquireFunction((reg, ts, r.C), self.kappa) / self.LAMBDAS[2]
-        return f1 - f2 + f3
+class TaskOrientAlgorithm(GreedyBaseAlgorithm):
+
+    def allocationTasks(self):
+        task_in_reg = {}
+        for task in self.tasks:
+            if task.isFinished:
+                continue
+            for reg in task.TR:
+                if not task.finished_reg[reg.id]:
+                    task_in_reg.setdefault(reg, []).append(task)
+
+        for reg, tasks in task_in_reg.items():
+            task: Task
+            for task in tasks:
+                u_max = None
+                r_max = None
+                s_select = None
+                for rob in self.robots:
+                    finish_time, select_sensors = min(rob.possiblePlan(reg, task))
+                    sample_times = self.allocationPlan.get((task, reg, rob), 0)
+                    if finish_time not in task.timeRange or not select_sensors or sample_times >= self.GAMMA:
+                        continue
+                    u = self.__DeltaUtility(reg, rob, finish_time)
+                    if u_max is None or u > u_max:
+                        u_max = u
+                        r_max = rob
+                        s_select = select_sensors
+                if r_max:
+                    r_max.assignTask(reg, task, s_select)
+                    ap = (task.id, reg.id, r_max.id)
+                    self.allocationPlan[ap] = self.allocationPlan.get(ap, 0) + 1
