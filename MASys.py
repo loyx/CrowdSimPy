@@ -44,6 +44,10 @@ class MACrowdSystem:
         map_size = (len(self.Regions), len(self.TS), len(self.RC))
         self.senseMap = SenseMap(map_size, self.Regions, self.TS, self.sense_time.len, self.RC)
 
+    @property
+    def TaskNums(self):
+        return sum(len(t.TR) for t in self.tasks)
+
     """ actions """
     def publishTask(self, task):
         self.__decomposeTask(task)

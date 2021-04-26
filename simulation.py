@@ -79,6 +79,8 @@ class Simulator:
 
         # start simulation
         sim_time = 0
+        total_tasks = self.MASys.TaskNums
+        finished = 0
         robot: Robot
         while sim_time < end_time:
             # if self.events.empty():
@@ -106,7 +108,8 @@ class Simulator:
                     feed_back: FeedBack = sim_sys.send(message)
             elif robot.state == robot.sensingState:
                 submit_tasks = ['Task'+str(t.id) for t in robot.currentTasks]
-                print(f"robot submitTask: reg{robot.current_region.id}, {submit_tasks}")
+                finished += len(submit_tasks)
+                print(f"robot submitTask: reg{robot.current_region.id}, {submit_tasks}, {finished}/{total_tasks}")
                 robot.submitTasks(sim_time)
                 if robot.canFinishTaskInTime(sim_time):
                     message = Message(0, robot.id, robot, robot.current_region, sim_time)
