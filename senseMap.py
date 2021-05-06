@@ -1,3 +1,4 @@
+import functools
 import math
 import itertools
 import collections
@@ -152,14 +153,12 @@ class SenseMap:
     def __getObj(self, key: MapPoint):
         return self.Regions[key.reg], self.TimeSlots[key.ts], self.RobotCategories[key.rc]
 
-    def __dist(self, p1: MapPoint, p2: MapPoint):
-        # todo 优化：距离各部分的占比和归一化
-        reg1, ts1, rc1 = self.__getObj(p1)
-        reg2, ts2, rc2 = self.__getObj(p2)
-        return reg1.dist(reg1) / reg1.area + ts1.dist(ts2) / ts1.len + rc1.dissimilarity(rc2)
-
+    @functools.lru_cache()
     def __matern(self, p1: MapPoint, p2: MapPoint):
-        d = self.__dist(p1, p2)
+        # todo 优化：距离各部分的占比和归一化
+        reg1, ts1, rc1 = self.Regions[p1.reg], self.TimeSlots[p1.ts], self.RobotCategories[p1.rc]
+        reg2, ts2, rc2 = self.Regions[p2.reg], self.TimeSlots[p2.ts], self.RobotCategories[p2.rc]
+        d = reg1.dist(reg1) / reg1.area + ts1.dist(ts2) / ts1.len + rc1.dissimilarity(rc2)
         return (1 + 2.236067977 * d / self.PHO + 5 * d * d / (3 * self.PHO * self.PHO)) * math.exp(
             -2.236067977 * d / self.PHO)
 
