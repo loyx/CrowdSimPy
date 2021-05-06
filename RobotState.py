@@ -13,7 +13,7 @@ class RobotState(ABC):
         self.robot = robot
 
     def __repr__(self):
-        return f"RobotState: {type(self).__name__[:-5]}"
+        return f"RobotState: {type(self).__name__[:-5]:>7}"
 
     def assignTask(self, reg, task, used_sensor):
         raise StateError(f"{type(self).__name__} cannot assignTask()")
@@ -35,20 +35,21 @@ class RobotState(ABC):
 
     def assignTaskOpr(self, reg, task, used_sensor, ideal_time):  # todo 优化：函数形式
         # update task and sensor record
-        self.robot.task_in_reg.append([task])
-        self.robot.sensor_in_reg.append([used_sensor])
+        robot = self.robot
+        robot.task_in_reg.append([task])
+        robot.sensor_in_reg.append([used_sensor])
 
         # update path record
-        self.robot.planned_distance.append(self.robot.planned_distance[-1] + self.robot.taskDistance(reg))
-        self.robot.planned_path.append(reg)
+        robot.planned_distance.append(robot.planned_distance[-1] + robot.taskDistance(reg))
+        robot.planned_path.append(reg)
 
         # update time record
-        time_used = ideal_time - self.robot.finish_time[-1]
-        self.robot.ideal_time_used.append(time_used)
-        self.robot.finish_time.append(ideal_time)
-        sensing_time = self.robot.C.intraD(reg) / self.robot.C.v
-        self.robot.ideal_sensing_time.append(sensing_time)
-        self.robot.ideal_moving_time.append(time_used - sensing_time)
+        time_used = ideal_time - robot.finish_time[-1]
+        robot.ideal_time_used.append(time_used)
+        robot.finish_time.append(ideal_time)
+        sensing_time = robot.C.intraD(reg) / robot.C.v
+        robot.ideal_sensing_time.append(sensing_time)
+        robot.ideal_moving_time.append(time_used - sensing_time)
 
 
 class IdleState(RobotState):
@@ -77,21 +78,37 @@ class MovingState(RobotState):
 
     def cancelPlan(self, time, regions):
         # update location
-        current_cursor = self.robot.current_cursor
-        start_reg = self.robot.planned_path[current_cursor-1]
-        end_reg = self.robot.current_task_region
-        assert end_reg == self.robot.planned_path[current_cursor]
-        percentage = (time-self.robot.finish_time[current_cursor-1]) / self.robot.ideal_time_used[current_cursor]
-        self.robot.current_region = self.robot.C.getLocation(start_reg, end_reg, percentage, regions)
-        self.robot.location = self.robot.current_region.randomLoc()
+        robot = self.robot
+        current_cursor = robot.current_cursor
+        start_reg = robot.planned_path[current_cursor - 1]
+        end_reg = robot.current_task_region
+        assert end_reg == robot.planned_path[current_cursor]
+        percentage = (time - robot.finish_time[current_cursor - 1]) / robot.ideal_time_used[current_cursor]
+        robot.current_region = robot.C.getLocation(start_reg, end_reg, percentage, regions)
+        robot.location = robot.current_region.randomLoc()
 
         # clear plan
-        self.robot.clearRecord(self.robot.current_cursor)
-        self.robot.current_cursor -= 1
-        self.robot.current_task_region = None
+        robot.clearRecord(robot.current_cursor)
+
+        # 更新相关record
+        # 当处于movingState的robot cancelPlan() 时，根据当前reg建立新起点
+        # 各record应和__init__中类似
+        robot.planned_path.append(robot.current_region)
+        robot.finish_time.append(time)  # 起点看为已完成任务，则finish time为当前时间
+        robot.task_in_reg.append([None])
+        robot.sensor_in_reg.append([None])
+        robot.ideal_time_used.append(0)
+        robot.ideal_moving_time.append(0)
+        robot.ideal_sensing_time.append(0)
+        # 需要更新计划距离
+        dis = robot.planned_distance[-1] + robot.C.interD(robot.planned_path[-2], robot.planned_path[-1])
+        robot.planned_distance.append(dis)
+
+        # 此时current_cursor不为0，但相当于初始状态
+        robot.current_task_region = None
 
         # change state
-        self.robot.state = self.robot.idleState
+        robot.state = robot.idleState
 
     def sense(self):
         self.robot.current_region = self.robot.current_task_region
@@ -101,8 +118,12 @@ class MovingState(RobotState):
 
 class SensingState(RobotState):
 
+    def executeMissions(self):
+        # do not thing but need it
+        pass
+
     def assignTask(self, reg, task, used_sensor):
-        ideal_time = self.robot.idealFinishTime(reg, used_sensor)
+        ideal_time = self.robot.idealFinishTime(reg, used_sensor, task)
 
         # 不同于idleState的分配任务，SensingState只能在之后分配任务，不能并发执行
         self.assignTaskOpr(reg, task, used_sensor, ideal_time)

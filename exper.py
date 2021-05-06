@@ -12,13 +12,13 @@ from resultDisplay import pltMASys
 
 # experiment parameters
 RANDOM_SEED = 1
-UAV_NUMS = 4
+UAV_NUMS = 5
 UV_NUMS = 4
-SMALL_UV_NUMS = 8
-TASK_NUMS = 60
+SMALL_UV_NUMS = 4
+TASK_NUMS = 50
 
 area_len = 2_000
-grid_granularity = 50
+grid_granularity = 100
 time_long = 86400
 time_granularity = 3600
 
@@ -159,7 +159,7 @@ real_word = RealWorld(len(Regions), (0, 0, 0), (1, 1, 1))
 physical_robots = {r.id: physicalRobot(r) for r in all_robots}
 sim_sys = Simulator(physical_robots, MASys1, real_word)
 
-# sim_sys.run(time_long)
-sim_sys.run(30)
+sim_sys.run(time_long)
+# sim_sys.run(30)
 
 pltMASys(MASys1)

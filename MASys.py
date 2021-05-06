@@ -81,6 +81,10 @@ class MACrowdSystem:
                 yield FeedBack(1, new_robots)
                 self.__base_algorithm.new_allocationPlan(new_tasks, new_robots, self.senseMap)
                 self.__base_algorithm.allocationTasks()
+                cov = self.__base_algorithm.totalCov()
+                r_dis = self.__base_algorithm.robotDis()
+                print("### MASys: finished allocation tasks ###")
+                print(f"### MASys: ideal cov: {cov}, ideal robot dis: {r_dis} ###")
 
     """ utility functions """
     def __execMissions(self):
@@ -97,7 +101,7 @@ class MACrowdSystem:
             message = yield FeedBack(0)
 
     def __needRepairing(self, message: Message):
-        if message.status_code != 0 and self.senseMap.update_ratio > 0.8:
+        if message.status_code != 0 or self.senseMap.update_ratio > 0.8:
             return True
         else:
             return False
@@ -105,25 +109,26 @@ class MACrowdSystem:
     def __constructNewPlan(self, message, k) -> Tuple[List[Task], List[Robot]]:
         assert message.status_code != 0
         if k == len(self.robots):
-            new_task = list(filter(lambda t: not t.isFinished, self.tasks))
-            new_robot = list(filter(lambda robot: not robot.isBroken, self.robots))
-            return new_task, new_robot
+            new_tasks = list(filter(lambda t: not t.isFinished, self.tasks))
+            new_robots = list(filter(lambda robot: not robot.isBroken, self.robots))
+        else:
+            target_r = None
+            for r in self.robots:
+                if r.id == message.robot_id:
+                    target_r = r
+                    break
+            assert target_r == message.robot
 
-        target_r = None
-        for r in self.robots:
-            if r.id == message.robot_id:
-                target_r = r
-                break
-        assert target_r == message.robot
+            most_near = queue.PriorityQueue(k)
+            for r in self.robots:
+                most_near.put((target_r.distBetweenRobot(r), r))
 
-        most_near = queue.PriorityQueue(k)
-        for r in self.robots:
-            most_near.put((target_r.distBetweenRobot(r), r))
+            new_robots: List[Robot] = [t[1] for t in most_near.queue]
+            new_tasks = list(reduce(operator.or_, [x.unfinishedTasks() for x in new_robots]))
 
-        new_robots: List[Robot] = [t[1] for t in most_near.queue]
+        # 取消自修复涉及到的机器人的任务计划
         for r in new_robots:
             r.cancelPlan(message.real_time, self.Regions)
-        new_tasks = list(reduce(operator.or_, [x.unfinishedTasks() for x in new_robots]))
         return new_tasks, new_robots
 
     def __decomposeTask(self, task: Task):

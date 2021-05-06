@@ -114,13 +114,14 @@ class Robot:
         self.ideal_sensing_time: List[float] = [0]
 
     def __repr__(self):
-        return "Robot(id:{}, c:{}, {}, loc:Region{})"\
+        return "Robot(id:{:}, c:{}, {}, loc:Region{})" \
             .format(self.id, type(self.C).__name__, self.state, self.init_reg.id)
 
     def __str__(self):
-        return f"Robot({self.id}, {self.state})"
+        return f"Robot({self.id:>2}, {self.state})"
 
     """ robot actions """
+
     def assignTask(self, reg, task, used_sensor):
         # state
         self.state.assignTask(reg, task, used_sensor)
@@ -146,6 +147,7 @@ class Robot:
         self.state.broken()
 
     """ utility functions """
+
     def clearRecord(self, cursor):
         self.planned_path = self.planned_path[:cursor]
         self.finish_time = self.finish_time[:cursor]
@@ -153,13 +155,13 @@ class Robot:
         self.sensor_in_reg = self.sensor_in_reg[:cursor]  # use GC
         self.ideal_time_used = self.ideal_time_used[:cursor]
         self.ideal_moving_time = self.ideal_moving_time[:cursor]
-        self.ideal_sensing_time = self.sensingState[:cursor]
-        self.planned_distance = self.planned_path[:cursor]
+        self.ideal_sensing_time = self.ideal_sensing_time[:cursor]
+        self.planned_distance = self.planned_distance[:cursor]
 
     def canFinishTaskInTime(self, time):
         if self.isFinishMissions:  # 如果已经完成所有任务，则返回True
             return True
-        assert time == self.finish_time[self.current_cursor-1]
+        assert time == self.finish_time[self.current_cursor - 1]
         if time + self.ideal_time_used[self.current_cursor] > self.finish_time[self.current_cursor]:
             return False
         else:
@@ -206,8 +208,8 @@ class Robot:
         # 因为机器人执行任务的流程一定是从上一区域移动到此区域，之后再完成任务
         move_time = self.C.interD(self.planned_path[-1], reg) / self.C.v
 
-        if not (self.state == self.sensingState or self.current_cursor == 0) \
-                and (move_time == 0 and sensor not in self.sensor_in_reg[reg]):
+        if not self.state == self.sensingState and not self.current_task_region \
+                and (move_time == 0 and sensor not in self.sensor_in_reg[-1]):
             # 判断1：机器人为sensingState时，或位于初始状态，不能并发分配任务
             # 判断2；如果机器人目的区域仍是机器人之前的区域，且之前没有使用该传感器，则可以并行执行
             # 理想完成时间点为之前的完成时间
