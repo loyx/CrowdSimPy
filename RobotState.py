@@ -37,6 +37,9 @@ class RobotState(ABC):
         # update task and sensor record
         self.robot.task_in_reg.append([task])
         self.robot.sensor_in_reg.append([used_sensor])
+
+        # update path record
+        self.robot.planned_distance.append(self.robot.planned_distance[-1] + self.robot.taskDistance(reg))
         self.robot.planned_path.append(reg)
 
         # update time record
@@ -46,9 +49,6 @@ class RobotState(ABC):
         sensing_time = self.robot.C.intraD(reg) / self.robot.C.v
         self.robot.ideal_sensing_time.append(sensing_time)
         self.robot.ideal_moving_time.append(time_used - sensing_time)
-
-        # update distance record
-        self.robot.planned_distance.append(self.robot.planned_distance[-1] + self.robot.taskDistance(reg))
 
 
 class IdleState(RobotState):
