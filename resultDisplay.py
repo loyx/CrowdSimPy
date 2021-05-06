@@ -33,6 +33,7 @@ def pltMASys(ma_sys: MACrowdSystem):
     fig, ax = plt.subplots()
     # ax.xaxis.set_major_locator(MultipleLocator(ma_sys.grid_granularity))
     # ax.yaxis.set_major_locator(MultipleLocator(ma_sys.grid_granularity))
+
     locator = MultipleLocator(ma_sys.grid_granularity)
     ax.xaxis.set_minor_locator(locator)
     ax.yaxis.set_minor_locator(locator)
@@ -42,7 +43,9 @@ def pltMASys(ma_sys: MACrowdSystem):
     ax.grid(True, 'both', alpha=0.3)
 
     # plt sense area
-    pltSenseArea(ax, ma_sys.sense_area)
+    xlen, ylen = ma_sys.sense_area.len
+    ax.set_xlim(-ma_sys.grid_granularity, xlen + ma_sys.grid_granularity)
+    ax.set_ylim(-ma_sys.grid_granularity, ylen + ma_sys.grid_granularity)
 
     legend_line = []
     legend_label = []
