@@ -32,4 +32,5 @@ class Message:
         self.real_time = rt
 
     def __repr__(self):
-        return f"Message(time:{self.real_time:.2f}, status:{Message.STATUS[self.status_code]})"
+        return f"Message(code: {self.status_code}, " \
+               f"time:{self.real_time:.2f}, status:{Message.STATUS[self.status_code]})"

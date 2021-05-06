@@ -72,7 +72,7 @@ class MACrowdSystem:
             print()
             print("### MASys: start execution ###")
             message = yield from self.__execMissions()
-            print(f"### something wrong {message} ###")
+            print(f"### something wrong: {message} ###")
             if self.__needRepairing(message):
                 # 构建新的T和R
                 print("### MASys: start self repairing ###")
