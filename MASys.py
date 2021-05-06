@@ -1,4 +1,3 @@
-import itertools
 import operator
 import queue
 from abc import ABC, abstractmethod
@@ -212,8 +211,6 @@ class RobotOrientAlgorithm(GreedyBaseAlgorithm):
                     record_u[task, reg, r] = self.DeltaUtility(reg, r, finish_time), select_sensor
         test = [(value[0], key) for key, value in record_u.items()]
         test.sort(key=lambda x: x[0], reverse=True)
-        for v, (t, reg, r) in test:
-            print(v, reg, r)
 
         while True:
 

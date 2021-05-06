@@ -15,7 +15,6 @@ def pltSenseArea(ax, sense_area: SenseArea):
 
 def pltRobotPath(ax: Axes, robot: Robot):
     colors = ['g', 'r', 'b', 'k']
-    points = [reg.represent_loc for reg in robot.planned_path]
     points = []
     for index, reg in enumerate(robot.planned_path):
         points.append(reg.represent_loc)

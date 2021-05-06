@@ -91,7 +91,7 @@ class Simulator:
             # sim_time, robot, action = self.events.get()
             sim_time, robot, action = heapq.heappop(self.events)
             # print("time:", sim_time, robot.id * '  ', robot, action, end=' ')
-            print(f"time:{sim_time:<20}, {robot}, {action}", end=" ")
+            print(f"time:{sim_time:<20}: {robot}, {action}", end=" ")
 
             # 这些操作发生在状态转化的那个瞬间  # todo 优化：brokenState
             if action == "init":
