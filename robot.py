@@ -106,6 +106,7 @@ class Robot:
         self.task_in_reg: List[List] = [[None]]
         self.sensor_in_reg: List[List] = [[None]]
         self.planned_path: List[Region] = [init_reg]
+        self.planned_distance: List[float] = [0]
         # 约定；当submit后，更新为real_finish_time
         self.finish_time: List[float] = [0]
         self.ideal_time_used: List[float] = [0]
@@ -153,6 +154,7 @@ class Robot:
         self.ideal_time_used = self.ideal_time_used[:cursor]
         self.ideal_moving_time = self.ideal_moving_time[:cursor]
         self.ideal_sensing_time = self.sensingState[:cursor]
+        self.planned_distance = self.planned_path[:cursor]
 
     def canFinishTaskInTime(self, time):
         if self.isFinishMissions:  # 如果已经完成所有任务，则返回True
@@ -215,9 +217,8 @@ class Robot:
         # 当机器人到达目标地点时，任务尚未开始，此时原地等待直至任务开始。
         return max(arrival_time, task.timeRange.s) + self.C.intraD(reg) / self.C.v
 
+    def taskDistance(self, reg: Region):
+        return self.C.interD(self.planned_path[-1], reg) + self.C.intraD(reg)
+
     def moveDistance(self):
-        dis = 0
-        pre_reg = self.init_reg
-        for reg in self.planned_path[1:]:
-            dis += self.C.intraD(reg) + self.C.interD(pre_reg, reg)
-        return dis
+        return self.planned_distance[-1]

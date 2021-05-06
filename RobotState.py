@@ -47,6 +47,9 @@ class RobotState(ABC):
         self.robot.ideal_sensing_time.append(sensing_time)
         self.robot.ideal_moving_time.append(time_used - sensing_time)
 
+        # update distance record
+        self.robot.planned_distance.append(self.robot.planned_distance[-1] + self.robot.taskDistance(reg))
+
 
 class IdleState(RobotState):
 
@@ -87,6 +90,7 @@ class MovingState(RobotState):
         self.robot.current_cursor -= 1
         self.robot.current_task_region = None
 
+        # change state
         self.robot.state = self.robot.idleState
 
     def sense(self):
