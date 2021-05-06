@@ -5,6 +5,7 @@ from typing import List, Optional
 from senseArea import Region, EuclideanDistance, Point
 from sensor import Sensor
 from RobotState import IdleState, MovingState, SensingState, BrokenState
+from task import Task
 
 
 def dataDiff(data1, data2):
@@ -188,13 +189,13 @@ class Robot:
         """
         机器人在reg区域执行task的可能_时间点_和使用的传感器
         """
-        # todo bug: 时间bug
         adequate_sensors = set(filter(lambda s: task.adequateSensor(s), self.C.sensors))
-        return ((self.idealFinishTime(reg, s), s) for s in adequate_sensors)
+        return ((self.idealFinishTime(reg, s, task), s) for s in adequate_sensors)
 
-    def idealFinishTime(self, reg, sensor: Sensor):
+    def idealFinishTime(self, reg, sensor: Sensor, task: Task):
         """
         机器人到reg区域使用sensor完成任务的理想时间，具体情况与robot状态有关
+        :param task: 目标任务
         :param reg: 目标区域
         :param sensor: 所使用的传感器
         :return: 理想完成 _时间点_
@@ -203,15 +204,16 @@ class Robot:
         # 因为机器人执行任务的流程一定是从上一区域移动到此区域，之后再完成任务
         move_time = self.C.interD(self.planned_path[-1], reg) / self.C.v
 
-        # 当机器人为sensingState时，或位于初始位置，不能并发分配任务
-        if self.state == self.sensingState or self.current_cursor == 0:
-            return self.finish_time[-1] + self.C.intraD(reg) / self.C.v + move_time
-
-        if move_time == 0 and sensor not in self.sensor_in_reg[reg]:
-            # 如果机器人目的区域仍是机器人之前的区域，且之前没有使用该传感器
-            # 则可以并行执行，理想完成时间点为之前的完成时间
+        if not (self.state == self.sensingState or self.current_cursor == 0) \
+                and (move_time == 0 and sensor not in self.sensor_in_reg[reg]):
+            # 判断1：机器人为sensingState时，或位于初始状态，不能并发分配任务
+            # 判断2；如果机器人目的区域仍是机器人之前的区域，且之前没有使用该传感器，则可以并行执行
+            # 理想完成时间点为之前的完成时间
             return self.finish_time[-1]
-        return self.finish_time[-1] + self.C.intraD(reg) / self.C.v + move_time
+
+        arrival_time = self.finish_time[-1] + move_time
+        # 当机器人到达目标地点时，任务尚未开始，此时原地等待直至任务开始。
+        return max(arrival_time, task.timeRange.s) + self.C.intraD(reg) / self.C.v
 
     def moveDistance(self):
         dis = 0

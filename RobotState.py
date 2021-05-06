@@ -51,7 +51,7 @@ class RobotState(ABC):
 class IdleState(RobotState):
 
     def assignTask(self, reg, task, used_sensor):
-        ideal_time = self.robot.idealFinishTime(reg, used_sensor)
+        ideal_time = self.robot.idealFinishTime(reg, used_sensor, task)
 
         # 如果理想完成时间与之前相同，说明该任务与前一任务并发执行
         if ideal_time == self.robot.finish_time[-1]:
