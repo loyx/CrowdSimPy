@@ -1,3 +1,4 @@
+import functools
 import numbers
 from abc import ABC, abstractmethod
 from typing import List, Optional
@@ -31,17 +32,22 @@ class RobotCategory(ABC):
         self.v: float = v
         self.physical_property: dict = physical_property
 
+    def __hash__(self):
+        """
+        python官方文档建议应先实现__eq__方法，这里使用来自Object的默认__eq__，即对比id()。
+        实现__hash__的目标是使RobotCategory可散列，从而可以使用lru_cache，优化dissimilarity速度。
+        本__hash__只返回hash(self.id)，是因为每一个id只对应一个RobotCategory实例，
+        不采用文档建议方法是因为RobotCategory类 类似于 “([], [], ...)”
+        """
+        return hash(self.id)
+
+    @functools.lru_cache
     def dissimilarity(self, other: 'RobotCategory') -> float:
-        # todo 优化：速度优化
-        # dis = dataDiff(self.move_mode, other.move_mode)
-        dis = int(self.move_mode == other.move_mode)
-        # dis += dataDiff(self.v, other.v)
-        dis += abs(self.v - other.v)
+        dis = dataDiff(self.move_mode, other.move_mode)
+        dis += dataDiff(self.v, other.v)
         for key, val in self.physical_property.items():
             other_val = self.physical_property.get(key)
-            # assert isinstance(other_val, numbers.Real)
-            # dis += dataDiff(val, other_val)
-            dis += abs(val - other_val)
+            dis += dataDiff(val, other_val)
         return dis
 
     def __repr__(self):
