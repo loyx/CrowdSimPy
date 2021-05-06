@@ -13,12 +13,12 @@ from resultDisplay import pltMASys
 # experiment parameters
 RANDOM_SEED = 1
 UAV_NUMS = 4
-UV_NUMS = 8
-SMALL_UV_NUMS = 12
+UV_NUMS = 4
+SMALL_UV_NUMS = 8
 TASK_NUMS = 60
 
 area_len = 2_000
-grid_granularity = 100
+grid_granularity = 50
 time_long = 86400
 time_granularity = 3600
 

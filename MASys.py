@@ -188,7 +188,8 @@ class GreedyBaseAlgorithm(BaseAlgorithm, ABC):
 
     def DeltaUtility(self, reg: Region, r: Robot, at: int):
         f1 = self.THETAS[0] * 1 / self.LAMBDAS[0]
-        f2 = self.THETAS[1] * (r.C.interD(r.planned_path[-1], reg) + r.C.intraD(reg)) / self.LAMBDAS[1]
+        # f2 = self.THETAS[1] * (r.C.interD(r.planned_path[-1], reg) + r.C.intraD(reg)) / self.LAMBDAS[1]
+        f2 = self.THETAS[1] * (r.planned_distance[-1] + r.taskDistance(reg)) / self.LAMBDAS[1]
 
         try:
             ts = list(filter(lambda t: at in t, self.sense_map.TimeSlots))[0]
