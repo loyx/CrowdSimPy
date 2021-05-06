@@ -7,7 +7,7 @@ from typing import List, Optional, Tuple
 
 from senseArea import SenseArea, Region
 from senseMap import SenseMap
-from task import Task, TimeRange, TimeSlot
+from task import Task, TimeSlot, TimeCycle
 from robot import Robot, RobotCategory
 from message import Message, FeedBack
 
@@ -17,7 +17,7 @@ class MACrowdSystem:
     def __init__(self,
                  sense_area: SenseArea,
                  grid_granularity,
-                 sense_time: TimeRange,
+                 sense_time: TimeCycle,
                  time_granularity,
                  robot_categorise,
                  base_algorithm,
@@ -41,7 +41,7 @@ class MACrowdSystem:
         self.RC: List[RobotCategory] = robot_categorise
 
         map_size = (len(self.Regions), len(self.TS), len(self.RC))
-        self.senseMap = SenseMap(map_size, self.Regions, self.TS, self.sense_time.len, self.RC)
+        self.senseMap = SenseMap(map_size, self.Regions, self.TS, self.RC)
 
     @property
     def TaskNums(self):

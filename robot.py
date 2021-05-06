@@ -31,7 +31,7 @@ class RobotCategory(ABC):
         self.physical_property: dict = physical_property
 
     def dissimilarity(self, other: 'RobotCategory') -> float:
-        # todo 速度优化
+        # todo 优化：速度优化
         # dis = dataDiff(self.move_mode, other.move_mode)
         dis = int(self.move_mode == other.move_mode)
         # dis += dataDiff(self.v, other.v)
@@ -188,7 +188,7 @@ class Robot:
         """
         机器人在reg区域执行task的可能_时间点_和使用的传感器
         """
-        # todo 时间bug
+        # todo bug: 时间bug
         adequate_sensors = set(filter(lambda s: task.adequateSensor(s), self.C.sensors))
         return ((self.idealFinishTime(reg, s), s) for s in adequate_sensors)
 

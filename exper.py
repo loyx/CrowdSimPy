@@ -2,7 +2,7 @@ import random
 
 from MASys import MACrowdSystem, TaskOrientAlgorithm, RobotOrientAlgorithm
 from senseArea import SenseArea, Point
-from task import TimeRange, Task
+from task import TimeRange, Task, TimeCycle
 from concreteRobot import UAV, UV, SmallUV
 from sensor import Sensor
 from robot import Robot
@@ -36,7 +36,7 @@ print()
 # system time range
 print('*** system time range ***')
 
-sys_time_range = TimeRange(0, time_long)
+sys_time_range = TimeCycle(time_long)
 print(sys_time_range)
 print()
 

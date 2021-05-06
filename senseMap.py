@@ -23,12 +23,10 @@ class SenseMap:
                  map_size,
                  regions,
                  time_slots,
-                 time_long,
                  robot_categories,
                  pho=0.1,
                  sigma_noise=0.03,
                  kappa=0.3):
-        self.time_long = time_long
         self.size = map_size
         self.Regions: List[Region] = regions
         self.TimeSlots: List[TimeSlot] = time_slots
@@ -112,9 +110,11 @@ class SenseMap:
 
         # 因为感知信息图记录的是一个时间周期内的情况（例如，1天24h内）
         # 而robot的real time是从0起的rt秒，因此需要对时间周期长度取余
-        std_real_time = rt % self.time_long
+        # std_real_time = rt % self.time_long
+        # 以上功能已经统一到Time类中 --loyx 2021/5/6
+
         try:
-            ts = list(itertools.takewhile(lambda time_slot: std_real_time in time_slot, self.TimeSlots))[0]
+            ts = list(itertools.takewhile(lambda time_slot: rt in time_slot, self.TimeSlots))[0]
         except IndexError:
             raise ValueError(f"error real time {rt}")
 

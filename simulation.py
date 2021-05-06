@@ -143,7 +143,7 @@ class Simulator:
                             del self.events[index]
                             # 因为每一个robot有且只有一个event，所以此处break
                             # 注意一般不能边迭代边del，这里是特殊情况
-                            # todo 更优的方式是将其赋值为一个nonsense event
+                            # todo 优化：更优的方式是将其赋值为一个nonsense event
                             break
 
                 # 构建新的robot协程，并更新记录和预激
