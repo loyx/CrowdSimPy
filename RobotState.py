@@ -54,6 +54,13 @@ class RobotState(ABC):
 
 class IdleState(RobotState):
 
+    def cancelPlan(self, time, regions):
+        # 在IdleState取消计划，则对于已完成任务的机器人应该将current_cursor恢复成类似初始状态的形式
+        # todo 重构：这样的设计非常不好
+        if self.robot.current_cursor > 0:
+            self.robot.current_cursor -= 1
+        pass
+
     def assignTask(self, reg, task, used_sensor):
         ideal_time = self.robot.idealFinishTime(reg, used_sensor, task)
 

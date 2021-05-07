@@ -124,7 +124,7 @@ class Robot:
             .format(self.id, type(self.C).__name__, self.state, self.init_reg.id)
 
     def __str__(self):
-        return f"Robot({self.id:>2}, {self.state})"
+        return f"Robot({self.id:>2}, {self.C.category}, {self.state})"
 
     """ robot actions """
 

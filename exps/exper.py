@@ -10,11 +10,11 @@ from simulation import Simulator, physicalRobot
 from realWorld import RealWorld
 
 # experiment parameters
-RANDOM_SEED = 1
+RANDOM_SEED = 3
 UAV_NUMS = 5
 UV_NUMS = 4
 SMALL_UV_NUMS = 4
-TASK_NUMS = 50
+TASK_NUMS = 60
 
 area_len = 2_000
 grid_granularity = 100
@@ -104,14 +104,14 @@ r_id_cnt = -1
 # uav robots
 uav_robots = []
 for i in range(UAV_NUMS):
-    uav_robots.append(Robot(r_id_cnt := r_id_cnt + 1, uav_category, Regions[random.randrange(0, len(Regions))]))
+    uav_robots.append(Robot(r_id_cnt := r_id_cnt + 1, uav_category, Regions[random.randrange(len(Regions))]))
 print("--- uav robots ---")
 print(uav_robots)
 
 # uv robots
 uv_robots = []
 for i in range(UV_NUMS):
-    uv_robots.append(Robot(r_id_cnt := r_id_cnt + 1, uv_category, Regions[random.randrange(0, len(Regions))]))
+    uv_robots.append(Robot(r_id_cnt := r_id_cnt + 1, uv_category, Regions[random.randrange(len(Regions))]))
 print("--- uv robots ---")
 print(uv_robots)
 
@@ -119,7 +119,7 @@ print(uv_robots)
 small_uv_robots = []
 for i in range(SMALL_UV_NUMS):
     small_uv_robots.append(
-        Robot(r_id_cnt := r_id_cnt + 1, small_uv_category, Regions[random.randrange(0, len(Regions))]))
+        Robot(r_id_cnt := r_id_cnt + 1, small_uv_category, Regions[random.randrange(len(Regions))]))
 print("--- small uv robots ---")
 print(small_uv_robots)
 print()
@@ -132,10 +132,21 @@ all_robots.extend(small_uv_robots)
 for r in all_robots:
     MASys1.registerRobot(r)
 
+robot_reg = [r.init_reg.id for r in MASys1.robots]
+
+
+def randomTaskReg():
+    while True:
+        random_reg = Regions[random.randrange(len(Regions))]
+        if random_reg.id not in robot_reg:
+            return random_reg
+
+
 # tasks
 tasks = []
 for i in range(TASK_NUMS):
-    reg = Regions[random.randrange(len(Regions))]
+    # reg = Regions[random.randrange(len(Regions))]
+    reg = randomTaskReg()
     sp = reg.center
     ep = Point(sp[0] + grid_granularity / 2, sp[1] + grid_granularity / 2)
     task_area = SenseArea(sp, ep)
@@ -152,7 +163,6 @@ for task in tasks:
 
 # real word
 real_word = RealWorld(len(Regions), (0, 0, 0), (1, 1, 1))
-
 
 # sim
 physical_robots = {r.id: physicalRobot(r) for r in all_robots}
