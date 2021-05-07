@@ -197,7 +197,9 @@ class BaseAlgorithm(ABC):
                     for reg in task.TR
                     for r in self.robots)
             cov += s / len(task.TR) / self.GAMMA
-        return cov
+        cov_rate = cov / len(self.tasks)
+        assert cov_rate <= 1.0
+        return cov_rate
 
     def robotDis(self):
         return sum(map(methodcaller('moveDistance'), self.robots))
@@ -216,7 +218,6 @@ class GreedyBaseAlgorithm(BaseAlgorithm, ABC):
 
     def DeltaUtility(self, reg: Region, r: Robot, at: int):
         f1 = self.THETAS[0] * 1 / self.LAMBDAS[0]
-        # f2 = self.THETAS[1] * (r.C.interD(r.planned_path[-1], reg) + r.C.intraD(reg)) / self.LAMBDAS[1]
         f2 = self.THETAS[1] * (r.planned_distance[-1] + r.taskDistance(reg)) / self.LAMBDAS[1]
 
         try:
