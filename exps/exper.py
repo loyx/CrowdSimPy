@@ -10,7 +10,7 @@ from simulation import Simulator, physicalRobot
 from realWorld import RealWorld
 
 # experiment parameters
-RANDOM_SEED = 3
+RANDOM_SEED = 0
 UAV_NUMS = 5
 UV_NUMS = 4
 SMALL_UV_NUMS = 4
@@ -98,20 +98,23 @@ Regions = MASys1.Regions
 print(Regions)
 print()
 
+# regs for robot and task
+random_regs = random.sample(MASys1.Regions, TASK_NUMS+UV_NUMS+UAV_NUMS+SMALL_UV_NUMS)
+
 # robots
 print("*** Robots ***")
 r_id_cnt = -1
 # uav robots
 uav_robots = []
 for i in range(UAV_NUMS):
-    uav_robots.append(Robot(r_id_cnt := r_id_cnt + 1, uav_category, Regions[random.randrange(len(Regions))]))
+    uav_robots.append(Robot(r_id_cnt := r_id_cnt + 1, uav_category, random_regs.pop()))
 print("--- uav robots ---")
 print(uav_robots)
 
 # uv robots
 uv_robots = []
 for i in range(UV_NUMS):
-    uv_robots.append(Robot(r_id_cnt := r_id_cnt + 1, uv_category, Regions[random.randrange(len(Regions))]))
+    uv_robots.append(Robot(r_id_cnt := r_id_cnt + 1, uv_category, random_regs.pop()))
 print("--- uv robots ---")
 print(uv_robots)
 
@@ -119,7 +122,7 @@ print(uv_robots)
 small_uv_robots = []
 for i in range(SMALL_UV_NUMS):
     small_uv_robots.append(
-        Robot(r_id_cnt := r_id_cnt + 1, small_uv_category, Regions[random.randrange(len(Regions))]))
+        Robot(r_id_cnt := r_id_cnt + 1, small_uv_category, random_regs.pop()))
 print("--- small uv robots ---")
 print(small_uv_robots)
 print()
@@ -132,21 +135,11 @@ all_robots.extend(small_uv_robots)
 for r in all_robots:
     MASys1.registerRobot(r)
 
-robot_reg = [r.init_reg.id for r in MASys1.robots]
-
-
-def randomTaskReg():
-    while True:
-        random_reg = Regions[random.randrange(len(Regions))]
-        if random_reg.id not in robot_reg:
-            return random_reg
-
-
 # tasks
 tasks = []
 for i in range(TASK_NUMS):
     # reg = Regions[random.randrange(len(Regions))]
-    reg = randomTaskReg()
+    reg = random_regs.pop()
     sp = reg.center
     ep = Point(sp[0] + grid_granularity / 2, sp[1] + grid_granularity / 2)
     task_area = SenseArea(sp, ep)
