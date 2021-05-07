@@ -27,7 +27,7 @@ class RobotState(ABC):
     def submitTask(self, time):
         raise StateError(f"{type(self).__name__} cannot submitTask()")
 
-    def sense(self):
+    def sense(self, time):
         raise StateError(f"{type(self).__name__} cannot sense()")
 
     def broken(self):
@@ -110,9 +110,17 @@ class MovingState(RobotState):
         # change state
         robot.state = robot.idleState
 
-    def sense(self):
+    def sense(self, time):
+
+        # 更新robot位置
         self.robot.current_region = self.robot.current_task_region
         self.robot.location = self.robot.current_region.randomLoc()
+
+        # begin tasks transaction
+        for task in self.robot.currentTasks:
+            task.beginSubTaskTransaction(self.robot.current_region, time)
+
+        # change state
         self.robot.state = self.robot.sensingState
 
 
@@ -138,13 +146,22 @@ class SensingState(RobotState):
         # self.robot.state = self.robot.sensingState
 
     def submitTask(self, time):
-        self.robot.finish_time[self.robot.current_cursor] = time  # 更新real time
-        self.robot.current_cursor += 1
-        if self.robot.current_cursor < len(self.robot.planned_path):
-            self.robot.current_task_region = self.robot.planned_path[self.robot.current_cursor]
-            self.robot.state = self.robot.movingState
+        robot = self.robot
+
+        # commit task transaction
+        for task in robot.currentTasks:
+            task.commitSubTaskTransaction(robot.current_task_region, time)
+
+        # 更新real time
+        robot.finish_time[robot.current_cursor] = time
+
+        # 切换下一任务
+        robot.current_cursor += 1
+        if robot.current_cursor < len(robot.planned_path):
+            robot.current_task_region = robot.planned_path[robot.current_cursor]
+            robot.state = robot.movingState
         else:
-            self.robot.state = self.robot.idleState
+            robot.state = robot.idleState
 
 
 class BrokenState(RobotState):

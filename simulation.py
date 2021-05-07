@@ -100,7 +100,7 @@ class Simulator:
             elif robot.state == robot.movingState:
                 if self.realWorld.canSense(robot):
                     print("can sense this reg")
-                    robot.sense()
+                    robot.sense(sim_time)
                     feed_back = FeedBack(0)
                 else:
                     print("cannot sense this reg!")

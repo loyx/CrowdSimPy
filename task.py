@@ -74,16 +74,43 @@ class Task:
         self.timeRange: TimeRange = time_range
 
         self.TR: List[Region] = []
-        self.finished_reg: Dict[int, bool] = {}
-        self.isFinished = False
+        self.subtask_status: Dict[int, int] = {}
+        self.canFinish = False
 
     def __repr__(self):
-        return "Task(id:{}, sensor{}, {}, {})".format(
+        return "Task(id:{}, finished:{}, sensor{}, {}, {})".format(
             self.id,
+            self.canFinish,
             self.__required_sensor.id,
-            self.TR,
+            ["task"+str(t.id) for t in self.TR],
             self.timeRange
         )
+
+    def beginSubTaskTransaction(self, reg: Region, time):
+        """
+        robot执行感知任务，从开始到结束是一个事物。开始sensing时调用beginSubTaskTransaction，
+        结束时调用commitSubTaskTransaction.
+        :param reg: 子任务区域
+        :param time: 时间
+        """
+        if time not in self.timeRange:
+            raise RuntimeError(f"error begin time {time} for Task{self.id}-subtask:reg{reg.id}")
+        self.subtask_status[reg.id] -= 1
+        if self.subtask_status[reg.id] < 0:
+            raise RuntimeError(f"sensing a finished task{self.id}!")
+        if not any(self.subtask_status.values()):
+            self.canFinish = True
+
+    def commitSubTaskTransaction(self, reg: Region, time):
+        if time not in self.timeRange:
+            raise RuntimeError(f"error begin time {time} for Task{self.id}-subtask:reg{reg.id}")
+
+    def rollbackSubTaskTransaction(self, reg: Region, time):
+        """
+        当robot在执行感知任务过程中无法完成感知任务，则需要回滚子任务事物
+        """
+        # todo 功能实现
+        pass
 
     def adequateSensor(self, sensor: Sensor):
         return sensor.category == self.__required_sensor.category  \

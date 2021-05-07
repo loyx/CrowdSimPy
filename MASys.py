@@ -109,7 +109,7 @@ class MACrowdSystem:
     def __constructNewPlan(self, message, k) -> Tuple[List[Task], List[Robot]]:
         assert message.status_code != 0
         if k == len(self.robots):
-            new_tasks = list(filter(lambda t: not t.isFinished, self.tasks))
+            new_tasks = list(filter(lambda t: not t.canFinish, self.tasks))
             new_robots = list(filter(lambda robot: not robot.isBroken, self.robots))
         else:
             target_r = None
@@ -137,7 +137,7 @@ class MACrowdSystem:
             if reg.center in task.area:
                 task.TR.append(reg)
         task.TR.sort(key=attrgetter('id'))
-        task.finished_reg = {reg.id: False for reg in task.TR}
+        task.subtask_status = {reg.id: self.__base_algorithm.GAMMA for reg in task.TR}
 
 
 class BaseAlgorithm(ABC):
@@ -209,7 +209,11 @@ class RobotOrientAlgorithm(GreedyBaseAlgorithm):
     def allocationTasks(self):
         record_u = {}
         for task in self.tasks:
+            if task.canFinish:  # 可以完成的任务无需分配
+                continue
             for reg in task.TR:
+                if task.subtask_status[reg.id] == 0:  # 可以完成的子任务无需分配
+                    continue
                 for r in self.robots:
                     finish_time, select_sensor = min(r.possiblePlan(reg, task))
                     if finish_time not in task.timeRange or not select_sensor:
@@ -248,7 +252,11 @@ class RobotOrientAlgorithm(GreedyBaseAlgorithm):
 
             # 更新该机器人与其他任务的$\Delta U$
             for task in self.tasks:
+                if task.canFinish:
+                    continue
                 for reg in task.TR:
+                    if task.subtask_status[reg.id] == 0:
+                        continue
                     if self.allocationPlan.get((task.id, reg.id, robot_star.id), 0):
                         continue
                     finish_time, select_sensor = min(robot_star.possiblePlan(reg, task))
@@ -263,11 +271,12 @@ class TaskOrientAlgorithm(GreedyBaseAlgorithm):
     def allocationTasks(self):
         task_in_reg = {}
         for task in self.tasks:
-            if task.isFinished:
+            if task.canFinish:
                 continue
             for reg in task.TR:
-                if not task.finished_reg[reg.id]:
-                    task_in_reg.setdefault(reg, []).append(task)
+                if task.subtask_status[reg.id] == 0:
+                    continue
+                task_in_reg.setdefault(reg, []).append(task)
 
         for reg, tasks in task_in_reg.items():
             task: Task

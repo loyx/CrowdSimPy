@@ -144,9 +144,9 @@ class Robot:
         # state
         self.state.submitTask(time)
 
-    def sense(self):
+    def sense(self, time):
         # state
-        self.state.sense()
+        self.state.sense(time)
 
     def broken(self):
         # state
