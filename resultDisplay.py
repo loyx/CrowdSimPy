@@ -45,14 +45,6 @@ def pltMASys(ma_sys, async_use=False, save=False):
 
     legend_line = []
     legend_label = []
-    # plt tasks
-    for task in ma_sys.tasks:
-        for reg in task.TR:
-            pos = reg.represent_loc
-            line = ax.plot(pos[0], pos[1], 'ks', markersize=1)
-            if not legend_line:
-                legend_line.append(line[0])
-                legend_label.append('tasks')
 
     styles = ['gx', 'r>', 'bo', 'kH']
     plted = [False] * len(styles)
@@ -64,13 +56,22 @@ def pltMASys(ma_sys, async_use=False, save=False):
 
     # plt robots
     for robot in ma_sys.robots:
-        init_robot_loc = robot.init_reg.represent_loc
+        init_robot_loc = robot.current_region.represent_loc
         ax.plot(init_robot_loc[0], init_robot_loc[1], styles[robot.C.id], markersize=3)
         line = pltRobotPath(ax, robot)
         if not plted[robot.C.id]:
             legend_line.append(line[0])
             legend_label.append(type(robot.C).__name__)
             plted[robot.C.id] = True
+
+    # plt tasks
+    for task in ma_sys.tasks:
+        for reg in task.TR:
+            pos = reg.represent_loc
+            line = ax.plot(pos[0], pos[1], 'ks', markersize=1)
+            if not legend_line:
+                legend_line.append(line[0])
+                legend_label.append('tasks')
 
     # plt legend
     ax.legend(legend_line, legend_label, loc=2, bbox_to_anchor=(1.03, 1), borderaxespad=0)

@@ -2,6 +2,7 @@ import heapq
 # import collections
 from typing import Dict, List
 
+from resultDisplay import pltMASys
 from robot import Robot
 from MASys import MACrowdSystem
 from realWorld import RealWorld
@@ -86,6 +87,12 @@ class Simulator:
             # if self.events.empty():
             if len(self.events) == 0:
                 print("*** end of events ***")
+                # plt
+                plt = pltMASys(self.MASys, False, False)
+                try:
+                    next(plt)
+                except StopIteration:
+                    pass
                 break
 
             # sim_time, robot, action = self.events.get()
