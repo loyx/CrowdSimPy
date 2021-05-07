@@ -53,12 +53,8 @@ class SenseMap:
         self.__history: List[Optional[History]] = []
         self.update_times = 0
 
-        # optimize time consume
-        self.__P_diff_buf = []
-        self.__covariance_buf = []
-
     def __repr__(self):
-        return f"SenseMap(Size:{self.size}, Update:{self.update_times})"
+        return "SenseMap(Size:(reg:{0[0]}, ts:{0[1]}, rc:{0[2]}), Update:{1})".format(self.size, self.update_times)
 
     """ access SenseMap """
 
@@ -80,7 +76,9 @@ class SenseMap:
         return self.__map.setdefault(item, (0, 0))
 
     def __setitem__(self, key, value):
-        key = self.__stdKey(key)
+        # 当前__setitem__仅在senseMap内调用，且可以保证key的正确性
+        # 为了提升效率故取消__stdKey()的调用
+        # key = self.__stdKey(key)
         self.__map[key] = value
 
     """ sensMap info """
@@ -145,12 +143,13 @@ class SenseMap:
         p_diff = np.array([r_perf - self.__prior_map[key] for r_perf, key in self.__history])
         covariance = [[self.__matern(x.m_point, y.m_point) for x in self.__history] for y in self.__history]
         cov_k_inv = np.linalg.inv(np.array(covariance) + self.SIGMA_NOISE * np.eye(len(self.__history)))
+        k_inv_p_diff_dot = np.dot(cov_k_inv, p_diff)
 
         # updating
         for key in self.__map.keys():
             k = np.array([self.__matern(key, his.m_point) for his in self.__history])
 
-            mu = self.__prior_map[key] + np.dot(k.T, np.dot(cov_k_inv, p_diff))
+            mu = self.__prior_map[key] + np.dot(k.T, k_inv_p_diff_dot)
             sigma = self.__matern(key, key) - np.dot(np.dot(k.T, cov_k_inv), k)
             self[key] = (mu, sigma)
 
