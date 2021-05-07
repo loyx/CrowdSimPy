@@ -8,7 +8,6 @@ from sensor import Sensor
 from robot import Robot
 from simulation import Simulator, physicalRobot
 from realWorld import RealWorld
-from resultDisplay import pltMASys
 
 # experiment parameters
 RANDOM_SEED = 1
@@ -160,6 +159,4 @@ physical_robots = {r.id: physicalRobot(r) for r in all_robots}
 sim_sys = Simulator(physical_robots, MASys1, real_word)
 
 sim_sys.run(time_long)
-# sim_sys.run(70)
-
-pltMASys(MASys1)
+# sim_sys.run(10)

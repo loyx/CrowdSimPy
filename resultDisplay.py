@@ -3,17 +3,11 @@ import matplotlib as mpl
 from matplotlib.axes import Axes
 from matplotlib.pyplot import MultipleLocator
 
-from senseArea import SenseArea, Point
-from MASys import MACrowdSystem
+from senseArea import Point
 from robot import Robot
 
 
-def pltSenseArea(ax, sense_area: SenseArea):
-    ax.set_xlim(sense_area.startPoint[0], sense_area.endPoint[0])
-    ax.set_ylim(sense_area.startPoint[1], sense_area.endPoint[1])
-
-
-def pltRobotPath(ax: Axes, robot: Robot):
+def pltRobotPath(ax: Axes, robot: Robot, alpha=False):
     colors = ['g', 'r', 'b', 'k']
     points = []
     for index, reg in enumerate(robot.planned_path):
@@ -22,18 +16,20 @@ def pltRobotPath(ax: Axes, robot: Robot):
             points.append(Point(reg.represent_loc[0], robot.planned_path[index+1].represent_loc[1]))
     x = [p[0] for p in points]
     y = [p[1] for p in points]
-    return ax.plot(x, y, '-'+colors[robot.C.id], linewidth=0.5)
+    if alpha:
+        return ax.plot(x, y, '--'+colors[robot.C.id], linewidth=0.5, alpha=0.5)
+    else:
+        return ax.plot(x, y, '-'+colors[robot.C.id], linewidth=0.5)
 
 
-def pltMASys(ma_sys: MACrowdSystem):
+def pltMASys(ma_sys, async_use=False, save=False):
     # style setting
     plt.figure(figsize=(10, 10), dpi=1000)
     mpl.rcParams['grid.linestyle'] = '-'
     ax: Axes
     fig, ax = plt.subplots()
-    # ax.xaxis.set_major_locator(MultipleLocator(ma_sys.grid_granularity))
-    # ax.yaxis.set_major_locator(MultipleLocator(ma_sys.grid_granularity))
 
+    # plt grid
     locator = MultipleLocator(ma_sys.grid_granularity)
     ax.xaxis.set_minor_locator(locator)
     ax.yaxis.set_minor_locator(locator)
@@ -53,15 +49,19 @@ def pltMASys(ma_sys: MACrowdSystem):
     for task in ma_sys.tasks:
         for reg in task.TR:
             pos = reg.represent_loc
-            line = ax.plot(pos[0], pos[1], 'k*', markersize=3)
+            line = ax.plot(pos[0], pos[1], 'ks', markersize=1)
             if not legend_line:
                 legend_line.append(line[0])
                 legend_label.append('tasks')
-                # line.set_label('task')
-    # ax.legend(['tasks'], loc=2, bbox_to_anchor=(1.05, 1), borderaxespad=0)
 
     styles = ['gx', 'r>', 'bo', 'kH']
     plted = [False] * len(styles)
+
+    if async_use:
+        for robot in ma_sys.robots:
+            pltRobotPath(ax, robot, True)
+        yield
+
     # plt robots
     for robot in ma_sys.robots:
         init_robot_loc = robot.init_reg.represent_loc
@@ -70,10 +70,12 @@ def pltMASys(ma_sys: MACrowdSystem):
         if not plted[robot.C.id]:
             legend_line.append(line[0])
             legend_label.append(type(robot.C).__name__)
-            # line.set_label(type(robot.C).__name__)
             plted[robot.C.id] = True
 
+    # plt legend
     ax.legend(legend_line, legend_label, loc=2, bbox_to_anchor=(1.03, 1), borderaxespad=0)
-    # ax.legend(loc=2, bbox_to_anchor=(1.05, 1), borderaxespad=0)
+
+    # show
+    if save:
+        plt.savefig("ma_sys.png", dpi=1000)
     plt.show()
-    # plt.savefig("ma_sys.png", dpi=1000)

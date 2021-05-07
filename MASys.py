@@ -10,6 +10,7 @@ from senseMap import SenseMap
 from task import Task, TimeSlot, TimeCycle
 from robot import Robot, RobotCategory
 from message import Message, FeedBack
+from resultDisplay import pltMASys
 
 
 class MACrowdSystem:
@@ -21,7 +22,8 @@ class MACrowdSystem:
                  time_granularity,
                  robot_categorise,
                  base_algorithm,
-                 repair_k=1
+                 repair_k=1,
+                 info_save=False
                  ):
         self.robots: List[Optional[Robot]] = []
         self.tasks: List[Optional[Task]] = []
@@ -43,6 +45,8 @@ class MACrowdSystem:
         map_size = (len(self.Regions), len(self.TS), len(self.RC))
         self.senseMap = SenseMap(map_size, self.Regions, self.TS, self.RC)
 
+        self.info_save = info_save
+
     @property
     def TaskNums(self):
         return sum(len(t.TR) for t in self.tasks)
@@ -63,17 +67,29 @@ class MACrowdSystem:
         # self-repairing task allocation base_algorithm
         self.__base_algorithm.new_allocationPlan(self.tasks, self.robots, self.senseMap)
         self.__base_algorithm.allocationTasks()
+
+        # print分配结果
         cov = self.__base_algorithm.totalCov()
         r_dis = self.__base_algorithm.robotDis()
         print("### MASys: finished allocation tasks ###")
         print(f"### MASys: ideal cov: {cov}, ideal robot dis: {r_dis} ###")
+        # plt
+        plt = pltMASys(self, False, self.info_save)
+        try:
+            next(plt)
+        except StopIteration:
+            pass
+
         while len(self.__finished_tasks) != len(self.tasks):
             # 执行感知任务
-            print()
-            print("### MASys: start execution ###")
+            print("\n### MASys: start execution ###")
             message = yield from self.__execMissions()
             print(f"### something wrong: {message} ###")
             if self.__needRepairing(message):
+                # 自修复前先画图
+                plt = pltMASys(self, True, self.info_save)
+                next(plt)
+
                 # 构建新的T和R
                 print("### MASys: start self repairing ###")
                 k = int(self.__repair_k * len(self.robots))
@@ -81,10 +97,17 @@ class MACrowdSystem:
                 yield FeedBack(1, new_robots)
                 self.__base_algorithm.new_allocationPlan(new_tasks, new_robots, self.senseMap)
                 self.__base_algorithm.allocationTasks()
+
+                # print 修复结构
                 cov = self.__base_algorithm.totalCov()
                 r_dis = self.__base_algorithm.robotDis()
                 print("### MASys: finished allocation tasks ###")
                 print(f"### MASys: ideal cov: {cov}, ideal robot dis: {r_dis} ###")
+                # 画图
+                try:
+                    next(plt)
+                except StopIteration:
+                    pass
 
     """ utility functions """
     def __execMissions(self):
