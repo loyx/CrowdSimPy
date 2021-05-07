@@ -53,6 +53,10 @@ class SenseMap:
         self.__history: List[Optional[History]] = []
         self.update_times = 0
 
+        # optimize time consume
+        self.__P_diff_buf = []
+        self.__covariance_buf = []
+
     def __repr__(self):
         return f"SenseMap(Size:{self.size}, Update:{self.update_times})"
 
@@ -153,7 +157,8 @@ class SenseMap:
     def __getObj(self, key: MapPoint):
         return self.Regions[key.reg], self.TimeSlots[key.ts], self.RobotCategories[key.rc]
 
-    @functools.lru_cache()
+    # 注意：lru_cache需要足够大才能优化性能
+    @functools.lru_cache(None, False)
     def __matern(self, p1: MapPoint, p2: MapPoint):
         # todo 优化：距离各部分的占比和归一化
         reg1, ts1, rc1 = self.Regions[p1.reg], self.TimeSlots[p1.ts], self.RobotCategories[p1.rc]

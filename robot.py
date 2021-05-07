@@ -41,7 +41,7 @@ class RobotCategory(ABC):
         """
         return hash(self.id)
 
-    @functools.lru_cache()
+    @functools.lru_cache(None)
     def dissimilarity(self, other: 'RobotCategory') -> float:
         dis = dataDiff(self.move_mode, other.move_mode)
         dis += dataDiff(self.v, other.v)

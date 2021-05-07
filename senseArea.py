@@ -70,7 +70,7 @@ class Region(Area):
     def size(self):
         return self.len[0]
 
-    @functools.lru_cache()
+    @functools.lru_cache(None)
     def dist(self, reg: 'Region'):
         return ManhattanDistance(self.center, reg.center)
 

@@ -32,7 +32,7 @@ class TimeSlot(TimeBase):
     def __repr__(self):
         return f"TimeSlot({self.id}, [{self.s}, {self.e}))"
 
-    @functools.lru_cache()
+    @functools.lru_cache(None)
     def dist(self, ts: 'TimeSlot'):
         return abs(self.id - ts.id)
 
