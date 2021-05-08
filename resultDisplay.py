@@ -1,6 +1,8 @@
 import matplotlib.pyplot as plt
 import matplotlib as mpl
+from matplotlib import colors, cm
 from matplotlib.axes import Axes
+from matplotlib.colors import ListedColormap
 from matplotlib.pyplot import MultipleLocator
 import numpy as np
 
@@ -13,14 +15,14 @@ def pltRobotPath(ax: Axes, robot: Robot, alpha=False):
     points = []
     for index, reg in enumerate(robot.planned_path):
         points.append(reg.represent_loc)
-        if robot.C.move_mode == 'Land' and index < len(robot.planned_path)-1:
-            points.append(Point(reg.represent_loc[0], robot.planned_path[index+1].represent_loc[1]))
+        if robot.C.move_mode == 'Land' and index < len(robot.planned_path) - 1:
+            points.append(Point(reg.represent_loc[0], robot.planned_path[index + 1].represent_loc[1]))
     x = [p[0] for p in points]
     y = [p[1] for p in points]
     if alpha:
-        return ax.plot(x, y, '--'+path_colors[robot.C.id], linewidth=0.5, alpha=0.5)
+        return ax.plot(x, y, '--' + path_colors[robot.C.id], linewidth=0.5, alpha=0.5)
     else:
-        return ax.plot(x, y, '-'+path_colors[robot.C.id], linewidth=0.5)
+        return ax.plot(x, y, '-' + path_colors[robot.C.id], linewidth=0.5)
 
 
 def pltMASys(ma_sys, async_use=False, save=False):
@@ -34,8 +36,8 @@ def pltMASys(ma_sys, async_use=False, save=False):
     locator = MultipleLocator(ma_sys.grid_granularity)
     ax.xaxis.set_minor_locator(locator)
     ax.yaxis.set_minor_locator(locator)
-    ax.xaxis.set_major_locator(MultipleLocator(2*ma_sys.grid_granularity))
-    ax.yaxis.set_major_locator(MultipleLocator(2*ma_sys.grid_granularity))
+    ax.xaxis.set_major_locator(MultipleLocator(2 * ma_sys.grid_granularity))
+    ax.yaxis.set_major_locator(MultipleLocator(2 * ma_sys.grid_granularity))
     ax.set_aspect('equal')
     ax.grid(True, 'both', alpha=0.3)
 
@@ -101,6 +103,11 @@ def pltSenseMap(sense_map):
     mx, my = np.meshgrid(x, y)
     mz = np.array(z).reshape(mx.shape)
 
-    # ax.pcolormesh(mx, my, mz)
-    ax.pcolor(mx, my, mz, shading='auto')
+    # pc = ax.pcolormesh(mx, my, mz, shading='auto')
+    new_colors = cm.get_cmap('Greens', 256)(np.linspace(0, 1, 256))
+    white = np.array([1, 1, 1, 1])
+    new_colors[:20, :] = white
+    new_cmp = ListedColormap(new_colors)
+    pc = ax.contourf(mx, my, mz, cmap=new_cmp, vmin=0, vmax=mz.max() * 1.5)
+    fig.colorbar(pc, ax=ax)
     plt.show()
