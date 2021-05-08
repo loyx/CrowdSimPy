@@ -85,14 +85,18 @@ def pltMASys(ma_sys, async_use=False, save=False):
 
 # def pltSenseMap(sense_map: SenseMap):
 def pltSenseMap(sense_map):
+    plt.figure(figsize=(10, 10), dpi=1000)
     fig, ax = plt.subplots()
     ax: Axes
+    ax.set_aspect('equal')
+    ax.xaxis.set_major_locator(MultipleLocator(1))
+    ax.yaxis.set_major_locator(MultipleLocator(1))
+
     x = np.arange(sense_map.grid_size[0])
     y = np.arange(sense_map.grid_size[1])
     z = []
     for i in range(sense_map.size[0]):
-        size_ = list(sense_map[i, j, 0][0] for j in range(sense_map.size[1]))
-        sum_p = sum(size_)
+        sum_p = sum(sense_map[i, j, 0][0] for j in range(sense_map.size[1]))
         z.append(sum_p)
     mx, my = np.meshgrid(x, y)
     mz = np.array(z).reshape(mx.shape)

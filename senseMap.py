@@ -173,7 +173,7 @@ class SenseMap:
         # todo 优化：距离各部分的占比和归一化
         reg1, ts1, rc1 = self.Regions[p1.reg], self.TimeSlots[p1.ts], self.RobotCategories[p1.rc]
         reg2, ts2, rc2 = self.Regions[p2.reg], self.TimeSlots[p2.ts], self.RobotCategories[p2.rc]
-        d = reg1.dist(reg1) / reg1.area + ts1.dist(ts2) / ts1.len + rc1.dissimilarity(rc2)
+        d = reg1.dist(reg2) + ts1.dist(ts2) + rc1.dissimilarity(rc2)
         return (1 + 2.236067977 * d / self.PHO + 5 * d * d / (3 * self.PHO * self.PHO)) * math.exp(
             -2.236067977 * d / self.PHO)
 
