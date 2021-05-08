@@ -2,13 +2,14 @@ import matplotlib.pyplot as plt
 import matplotlib as mpl
 from matplotlib.axes import Axes
 from matplotlib.pyplot import MultipleLocator
+import numpy as np
 
 from senseArea import Point
 from robot import Robot
 
 
 def pltRobotPath(ax: Axes, robot: Robot, alpha=False):
-    colors = ['g', 'r', 'b', 'k']
+    path_colors = ['g', 'r', 'b', 'k']
     points = []
     for index, reg in enumerate(robot.planned_path):
         points.append(reg.represent_loc)
@@ -17,9 +18,9 @@ def pltRobotPath(ax: Axes, robot: Robot, alpha=False):
     x = [p[0] for p in points]
     y = [p[1] for p in points]
     if alpha:
-        return ax.plot(x, y, '--'+colors[robot.C.id], linewidth=0.5, alpha=0.5)
+        return ax.plot(x, y, '--'+path_colors[robot.C.id], linewidth=0.5, alpha=0.5)
     else:
-        return ax.plot(x, y, '-'+colors[robot.C.id], linewidth=0.5)
+        return ax.plot(x, y, '-'+path_colors[robot.C.id], linewidth=0.5)
 
 
 def pltMASys(ma_sys, async_use=False, save=False):
@@ -79,4 +80,23 @@ def pltMASys(ma_sys, async_use=False, save=False):
     # show
     if save:
         plt.savefig("ma_sys.png", dpi=1000)
+    plt.show()
+
+
+# def pltSenseMap(sense_map: SenseMap):
+def pltSenseMap(sense_map):
+    fig, ax = plt.subplots()
+    ax: Axes
+    x = np.arange(sense_map.grid_size[0])
+    y = np.arange(sense_map.grid_size[1])
+    z = []
+    for i in range(sense_map.size[0]):
+        size_ = list(sense_map[i, j, 0][0] for j in range(sense_map.size[1]))
+        sum_p = sum(size_)
+        z.append(sum_p)
+    mx, my = np.meshgrid(x, y)
+    mz = np.array(z).reshape(mx.shape)
+
+    # ax.pcolormesh(mx, my, mz)
+    ax.pcolor(mx, my, mz, shading='auto')
     plt.show()

@@ -9,6 +9,7 @@ import numpy as np
 from senseArea import Region
 from task import TimeSlot
 from robot import RobotCategory, Robot
+from resultDisplay import pltSenseMap
 
 MapPoint = collections.namedtuple("MapPoint", "reg ts rc")
 History = collections.namedtuple("History", "r_perf m_point")
@@ -23,13 +24,16 @@ class SenseMap:
     def __init__(self,
                  map_size,
                  regions,
+                 grid_size,
                  time_slots,
                  robot_categories,
+                 plt_times=10,
                  pho=0.1,
                  sigma_noise=0.03,
                  kappa=0.3):
         self.size = map_size
         self.Regions: List[Region] = regions
+        self.grid_size = grid_size
         self.TimeSlots: List[TimeSlot] = time_slots
         self.RobotCategories: List[RobotCategory] = robot_categories
         self.cellNum = self.size[0] * self.size[1] * self.size[2]
@@ -42,6 +46,9 @@ class SenseMap:
             for k in range(self.size[2])
         }
         self.dimension = 3
+
+        # plt parameters
+        self.plt_times = plt_times
 
         # base_algorithm parameters
         self.PHO = pho
@@ -90,6 +97,7 @@ class SenseMap:
     """ senseMap action """
 
     def beginUpdating(self):
+        print(" "*25, "-"*10, "SenseMap: init", "-"*10)
         old_values = self.__prior_map.values()
         p_range = max(old_values) - min(old_values)
         if p_range == 0:
@@ -100,6 +108,7 @@ class SenseMap:
             mu = self.__prior_map[key] / p_range * robot_category.intraD(self.Regions[key.reg]) / robot_category.v
             sigma = self.__matern(key, key)
             self[key] = (mu, sigma)
+        pltSenseMap(self)
 
     def update(self, reg: Region, rt: float, r: Robot):
         print(" "*25, "-"*10, "SenseMap: updating", "-"*10)
@@ -123,6 +132,8 @@ class SenseMap:
 
         self.__update_gaussian_process()
         self.update_times += 1
+        if not self.update_times % self.plt_times:
+            pltSenseMap(self)
 
         if len(self.__history) > self.__history_len:
             self.__new_update_cycle()

@@ -8,6 +8,7 @@ from sensor import Sensor
 from robot import Robot
 from simulation import Simulator, physicalRobot
 from realWorld import RealWorld
+from resultDisplay import pltSenseMap
 
 # experiment parameters
 RANDOM_SEED = 0

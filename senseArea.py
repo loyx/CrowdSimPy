@@ -87,7 +87,7 @@ class SenseArea(Area):
             self.unit
         )
 
-    def grid(self, granularity: int) -> List[Region]:
+    def grid(self, granularity: int) -> Tuple[Tuple[int], List[Region]]:
         """
         网格化感知区域
         :param granularity: 网格化粒度
@@ -96,7 +96,7 @@ class SenseArea(Area):
         if any(x % granularity for x in self.len):
             raise ValueError("granularity should be common factor of length")
         cnt = -1
-        return [
+        return tuple(int(x / granularity) for x in self.len), [
             Region(cnt := cnt + 1,
                    Point(i*granularity, j*granularity),
                    Point((i+1)*granularity, (j+1)*granularity))

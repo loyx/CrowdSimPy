@@ -34,7 +34,10 @@ class MACrowdSystem:
 
         self.sense_area = sense_area
         self.grid_granularity = grid_granularity
-        self.Regions: List[Region] = self.sense_area.grid(self.grid_granularity)
+
+        grid_size, regions = self.sense_area.grid(self.grid_granularity)
+        self.Regions: List[Region] = regions
+        self.grid_size = grid_size
 
         self.sense_time = sense_time
         self.time_granularity = time_granularity
@@ -43,7 +46,7 @@ class MACrowdSystem:
         self.RC: List[RobotCategory] = robot_categorise
 
         map_size = (len(self.Regions), len(self.TS), len(self.RC))
-        self.senseMap = SenseMap(map_size, self.Regions, self.TS, self.RC)
+        self.senseMap = SenseMap(map_size, self.Regions, self.grid_size, self.TS, self.RC)
 
         self.info_save = info_save
 
