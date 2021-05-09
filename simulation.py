@@ -127,7 +127,11 @@ class Simulator:
             else:
                 raise RuntimeError("error robot")
 
-            if feed_back.status_code == 0:
+            if feed_back.status_code == 0 or feed_back.status_code == 2:  # 正常操作 或 跳过操作
+
+                if feed_back.status_code == 2:
+                    robot.skipSense(sim_time)
+
                 next_time = sim_time + self.realWorld.compute_duration(robot)
                 active_p_robot = self.p_robots[robot.id]
                 try:
@@ -137,7 +141,7 @@ class Simulator:
                 else:
                     # self.events.put(next_event)
                     heapq.heappush(self.events, next_event)
-            elif feed_back.status_code == 1:
+            elif feed_back.status_code == 1:  # 自修复操作
                 need_repair_robots: List[Robot] = feed_back.robots
 
                 # 删除自修复的robot的event

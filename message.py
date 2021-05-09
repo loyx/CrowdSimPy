@@ -3,7 +3,8 @@ class FeedBack:
 
     STATUS = {
         0: "nothing",
-        1: "need repair"
+        1: "need repair",
+        2: "skip sense this sub task"
     }
 
     def __init__(self, status_code, robots=None):

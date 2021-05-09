@@ -30,6 +30,9 @@ class RobotState(ABC):
     def sense(self, time):
         raise StateError(f"{type(self).__name__} cannot sense()")
 
+    def skipSense(self, time):
+        raise StateError(f"{type(self).__name__} cannot skipSense()")
+
     def broken(self):
         raise StateError(f"{type(self).__name__} cannot broken()")
 
@@ -90,6 +93,7 @@ class MovingState(RobotState):
         start_reg = robot.planned_path[current_cursor - 1]
         end_reg = robot.current_task_region
         assert end_reg == robot.planned_path[current_cursor]
+        # todo 优化：实际时间一般都比理论用时长，因此此处估计的已行进距离会比实际多一点
         percentage = (time - robot.finish_time[current_cursor - 1]) / robot.ideal_time_used[current_cursor]
         robot.current_region = robot.C.getLocation(start_reg, end_reg, percentage, regions)
         robot.location = robot.current_region.randomLoc()
@@ -129,6 +133,29 @@ class MovingState(RobotState):
 
         # change state
         self.robot.state = self.robot.sensingState
+
+    def skipSense(self, time):
+        robot = self.robot
+
+        # 更新robot位置
+        robot.current_region = robot.current_task_region
+        robot.location = robot.current_region.randomLoc()
+
+        # no begin tasks transaction !
+        # self.robot.state = self.robot.sensingState
+
+        # 跳过当前任务
+        # no commit task transaction !
+        # 但要更新real time
+        robot.finish_time[robot.current_cursor] = time
+
+        # 跳到下一任务
+        robot.current_cursor += 1
+        if robot.current_cursor < len(robot.planned_path):
+            robot.current_task_region = robot.planned_path[robot.current_cursor]
+            # robot.state = robot.movingState
+        else:
+            robot.state = robot.idleState
 
 
 class SensingState(RobotState):

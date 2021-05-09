@@ -22,6 +22,7 @@ class MACrowdSystem:
                  time_granularity,
                  robot_categorise,
                  base_algorithm,
+                 self_repair=True,
                  repair_k=1,
                  info_save=False
                  ):
@@ -29,6 +30,7 @@ class MACrowdSystem:
         self.tasks: List[Optional[Task]] = []
         self.__base_algorithm: BaseAlgorithm = base_algorithm
         self.__repair_k = repair_k
+        self.self_repair = self_repair
 
         self.__finished_tasks = []
 
@@ -126,7 +128,11 @@ class MACrowdSystem:
                 # 当机器人无法感知某区域时, 我们将完成时间设置为一个非常大的数。
                 # 这样感知图中该点的表现会很差
                 self.senseMap.update(message.region, self.sense_time.len**2, message.robot)
-                return message
+
+                if self.self_repair:
+                    return message  # 进行自修复
+                else:
+                    yield FeedBack(2)  # 如果不自修，则告诉机器人跳过感知该区域
             else:
                 return message
             message = yield FeedBack(0)

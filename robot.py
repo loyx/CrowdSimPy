@@ -148,6 +148,9 @@ class Robot:
         # state
         self.state.sense(time)
 
+    def skipSense(self, time):
+        self.state.skipSense(time)
+
     def broken(self):
         # state
         self.state.broken()
