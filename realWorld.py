@@ -17,11 +17,12 @@ class RealWorld:
         self.moving_affect = 1 + moving_affect
 
     def compute_duration(self, robot: Robot) -> float:
-        index = None
         for i, cls in enumerate(RealWorld.SIM_ROB):
-            if isinstance(robot.C, cls):
+            if type(robot.C).__name__ == cls.__name__:
                 index = i
                 break
+        else:
+            raise RuntimeError("unknown RobotCategory")
 
         if robot.state == robot.sensingState:
             ideal_time = robot.ideal_sensing_time[robot.current_cursor]
@@ -42,7 +43,7 @@ class RealWorld:
 
     def canSense(self, robot: Robot) -> bool:
         for i, cls in enumerate(RealWorld.SIM_ROB):
-            if isinstance(robot.C, cls):
+            if type(robot.C).__name__ == cls.__name__:
                 if self.reg_info[robot.current_task_region.id][i] < self.thresholds[i]:
                     return False
                 else:

@@ -77,8 +77,8 @@ print(small_uv_category)
 print()
 
 # task allocation algorithm
-task_algorithm = TaskOrientAlgorithm()
-robot_algorithm = RobotOrientAlgorithm()
+task_algorithm = TaskOrientAlgorithm(sense_area.len)
+robot_algorithm = RobotOrientAlgorithm(sense_area.len)
 
 # MASys
 MASys1 = MACrowdSystem(
@@ -156,7 +156,7 @@ for task in tasks:
     # print(task.TR)
 
 # real word
-real_word = RealWorld(len(Regions), (0, 0, 0), (1, 1, 1))
+real_word = RealWorld(len(Regions), (0.05, 0, 0), (1, 1, 1))
 
 # sim
 physical_robots = {r.id: physicalRobot(r) for r in all_robots}

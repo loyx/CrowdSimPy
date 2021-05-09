@@ -33,8 +33,12 @@ class TimeSlot(TimeBase):
         return f"TimeSlot({self.id}, [{self.s}, {self.e}))"
 
     @functools.lru_cache(None)
-    def dist(self, ts: 'TimeSlot'):
-        return abs(self.id - ts.id)
+    def dist(self, ts: 'TimeSlot', max_ts_id):
+        if self.id > ts.id:
+            ring = ts.id + max_ts_id - self.id
+        else:
+            ring = self.id + max_ts_id - ts.id
+        return min(abs(self.id - ts.id), ring)
 
 
 class TimeCycle(TimeBase):

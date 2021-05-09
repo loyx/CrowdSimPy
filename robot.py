@@ -17,7 +17,7 @@ def dataDiff(data1, data2):
     elif type(data1) != type(data2):
         raise TypeError("{}{} are different data type".format(type(data1), type(data2)))
     elif isinstance(data1, str):
-        return int(data1 == data2)
+        return int(data1 != data2)
     else:
         raise NotImplementedError(type(data1))
 

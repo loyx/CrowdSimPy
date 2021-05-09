@@ -25,6 +25,7 @@ class SenseMap:
                  map_size,
                  regions,
                  grid_size,
+                 area_size,
                  time_slots,
                  robot_categories,
                  plt_times=10,
@@ -37,6 +38,8 @@ class SenseMap:
         self.TimeSlots: List[TimeSlot] = time_slots
         self.RobotCategories: List[RobotCategory] = robot_categories
         self.cellNum = self.size[0] * self.size[1] * self.size[2]
+
+        self.area_max_dist = (area_size[0]**2 + area_size[1] ** 2)**0.5
 
         self.__map: Dict[MapPoint, tuple] = {}
         self.__prior_map: Dict[MapPoint, int] = {
@@ -110,15 +113,18 @@ class SenseMap:
             self[key] = (mu, sigma)
         pltSenseMap(self)
 
-    def update(self, reg: Region, rt: float, r: Robot):
+    def update(self, reg: Region, rt: float, r: Robot, fatal=False):
         print(" "*25, "-"*10, "SenseMap: updating", "-"*10)
         t_ideal = r.C.intraD(reg) / r.C.v
 
-        # senseMap 的Update发生在robot submit之后，此时cursor指向下一个目标任务
-        # 因此上一任务的实际用时为 [cursor-1] - [cursor-2]
-        assert rt == r.finish_time[r.current_cursor - 1]
-        real_used_time = rt - r.finish_time[r.current_cursor - 2]
-        r_pref = 1 - real_used_time / t_ideal
+        if fatal:
+            r_pref = -5
+        else:
+            # senseMap 的Update发生在robot submit之后，此时cursor指向下一个目标任务
+            # 因此上一任务的实际用时为 [cursor-1] - [cursor-2]
+            assert rt == r.finish_time[r.current_cursor - 1]
+            real_used_time = rt - r.finish_time[r.current_cursor - 2]
+            r_pref = 1 - real_used_time / t_ideal
 
         # 因为感知信息图记录的是一个时间周期内的情况（例如，1天24h内）
         # 而robot的real time是从0起的rt秒，因此需要对时间周期长度取余
@@ -130,14 +136,16 @@ class SenseMap:
         except IndexError:
             raise ValueError(f"error real time {rt}")
 
+        # 应先记录history再更加高斯过程
+        self.__history.append(History(r_pref, MapPoint(reg.id, ts.id, r.C.id)))
         self.__update_gaussian_process()
+        check = [value for value in self.__map.values() if value[0] != 0]
         self.update_times += 1
         if not self.update_times % self.plt_times:
             pltSenseMap(self)
 
         if len(self.__history) > self.__history_len:
             self.__new_update_cycle()
-        self.__history.append(History(r_pref, MapPoint(reg.id, ts.id, r.C.id)))
 
     def acquireFunction(self, key: tuple, kappa):
         return self[key][0] + kappa * self[key][1]
@@ -173,7 +181,9 @@ class SenseMap:
         # todo 优化：距离各部分的占比和归一化
         reg1, ts1, rc1 = self.Regions[p1.reg], self.TimeSlots[p1.ts], self.RobotCategories[p1.rc]
         reg2, ts2, rc2 = self.Regions[p2.reg], self.TimeSlots[p2.ts], self.RobotCategories[p2.rc]
-        d = reg1.dist(reg2) + ts1.dist(ts2) + rc1.dissimilarity(rc2)
+        d = reg1.dist(reg2) / self.area_max_dist \
+            + ts1.dist(ts2, len(self.TimeSlots)) / len(self.TimeSlots) \
+            + rc1.dissimilarity(rc2)
         return (1 + 2.236067977 * d / self.PHO + 5 * d * d / (3 * self.PHO * self.PHO)) * math.exp(
             -2.236067977 * d / self.PHO)
 

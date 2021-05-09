@@ -112,7 +112,7 @@ class Simulator:
                     feed_back = FeedBack(0)
                 else:
                     print(f"cannot sense reg{task_reg.id}!")
-                    message = Message(3, robot.id, robot, robot.current_region, sim_time)
+                    message = Message(3, robot.id, robot, task_reg, sim_time)  # 此时robot位置还未更新
                     feed_back: FeedBack = sim_sys.send(message)
             elif robot.state == robot.sensingState:
                 submit_tasks = ['Task'+str(t.id) for t in robot.currentTasks]

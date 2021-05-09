@@ -49,7 +49,7 @@ class MACrowdSystem:
         self.RC: List[RobotCategory] = robot_categorise
 
         map_size = (len(self.Regions), len(self.TS), len(self.RC))
-        self.senseMap = SenseMap(map_size, self.Regions, self.grid_size, self.TS, self.RC)
+        self.senseMap = SenseMap(map_size, self.Regions, self.grid_size, self.sense_area.len, self.TS, self.RC)
 
         self.info_save = info_save
 
@@ -137,7 +137,7 @@ class MACrowdSystem:
             elif message.status_code == 3:
                 # 当机器人无法感知某区域时, 我们将完成时间设置为一个非常大的数。
                 # 这样感知图中该点的表现会很差
-                self.senseMap.update(message.region, self.sense_time.len**2, message.robot)
+                self.senseMap.update(message.region, message.real_time, message.robot, fatal=True)
 
                 if self.self_repair:
                     return message  # 进行自修复
@@ -189,11 +189,13 @@ class MACrowdSystem:
 
 class BaseAlgorithm(ABC):
 
-    def __init__(self, gamma=1):
+    def __init__(self, area_len, gamma=1):
         self.robots: List[Robot] = []
         self.tasks: List[Task] = []
         self.sense_map: Optional[SenseMap] = None
         self.kappa = None
+
+        self.area_max_dist = (area_len[0]**2 + area_len[1] ** 2)**0.5
 
         self.allocationPlan = {}
         self.sampleRecord = {}
@@ -231,10 +233,10 @@ class BaseAlgorithm(ABC):
 
 class GreedyBaseAlgorithm(BaseAlgorithm, ABC):
 
-    def __init__(self, gamma=1, thetas=(1, 1, 1), lambdas=(1, 1, 1)):
-        super().__init__(gamma)
-        self.THETAS = thetas
-        self.LAMBDAS = lambdas
+    def __init__(self, area_len, gamma=1, thetas=(1, 1, 2)):
+        super().__init__(area_len, gamma)
+        self.THETAS = [t/len(thetas) for t in thetas]
+        self.LAMBDAS = (1, self.area_max_dist, 5)
 
     @abstractmethod
     def allocationTasks(self):
