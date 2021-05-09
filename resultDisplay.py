@@ -108,6 +108,6 @@ def pltSenseMap(sense_map):
     white = np.array([1, 1, 1, 1])
     new_colors[:20, :] = white
     new_cmp = ListedColormap(new_colors)
-    pc = ax.contourf(mx, my, mz, cmap=new_cmp, vmin=0, vmax=mz.max() * 1.5)
+    pc = ax.contourf(mx, my, mz, cmap=new_cmp, vmin=mz.min(), vmax=mz.max() * 1.5)
     fig.colorbar(pc, ax=ax)
     plt.show()

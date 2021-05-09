@@ -168,14 +168,14 @@ class Robot:
         if self.isFinishMissions:  # 如果已经完成所有任务，则返回True
             return True
         assert time == self.finish_time[self.current_cursor - 1]
-        if time + self.ideal_time_used[self.current_cursor] > self.finish_time[self.current_cursor]:
-            #todo bug
+        next_task_min_time = min(t.timeRange.e for t in self.currentTasks)
+        if time + self.ideal_time_used[self.current_cursor] > next_task_min_time:
             return False
         else:
             return True
 
     @property
-    def currentTasks(self):
+    def currentTasks(self) -> List[Task]:
         return self.task_in_reg[self.current_cursor]
 
     @property
