@@ -124,7 +124,7 @@ class Robot:
             .format(self.id, type(self.C).__name__, self.state, self.init_reg.id)
 
     def __str__(self):
-        return f"Robot({self.id:>2}, {self.C.category}, {self.state})"
+        return f"Robot({self.id:>2}, {self.C.category:8}, {self.state})"
 
     """ robot actions """
 
@@ -169,6 +169,7 @@ class Robot:
             return True
         assert time == self.finish_time[self.current_cursor - 1]
         if time + self.ideal_time_used[self.current_cursor] > self.finish_time[self.current_cursor]:
+            #todo bug
             return False
         else:
             return True

@@ -118,8 +118,8 @@ class MACrowdSystem:
             r.executeMissions()
         message = yield
         while True:
+            self.senseMap.update(message.region, message.real_time, message.robot)
             if message.status_code == 0:
-                self.senseMap.update(message.region, message.real_time, message.robot)
                 if self.senseMap.update_ratio >= 0.8:
                     return message
             else:

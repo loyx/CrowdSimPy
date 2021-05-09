@@ -118,7 +118,7 @@ class SenseMap:
         # 因此上一任务的实际用时为 [cursor-1] - [cursor-2]
         assert rt == r.finish_time[r.current_cursor - 1]
         real_used_time = rt - r.finish_time[r.current_cursor - 2]
-        r_pref = t_ideal - real_used_time / t_ideal
+        r_pref = 1 - real_used_time / t_ideal
 
         # 因为感知信息图记录的是一个时间周期内的情况（例如，1天24h内）
         # 而robot的real time是从0起的rt秒，因此需要对时间周期长度取余
