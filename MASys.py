@@ -116,6 +116,15 @@ class MACrowdSystem:
                     pass
 
     """ utility functions """
+    def actualCovAndDist(self):
+        gamma = self.__base_algorithm.GAMMA
+        cov = 0
+        for task in self.tasks:
+            cov += sum(map(lambda x: gamma-x, task.subtask_status.values())) / len(task.TR) / gamma
+        cov_rate = cov / len(self.tasks)
+        robot_dist = sum(map(methodcaller('moveDistance'), self.robots))
+        return cov_rate, robot_dist
+
     def __execMissions(self):
         for r in self.robots:
             r.executeMissions()
