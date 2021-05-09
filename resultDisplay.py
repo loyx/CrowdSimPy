@@ -108,9 +108,9 @@ def pltSenseMap(sense_map):
     # pc = ax.pcolormesh(mx, my, mz, shading='auto')
     greens = cm.get_cmap('Greens', 256)(np.linspace(0, 1, 127))
     white = np.array([1, 1, 1, 1])
-    greens[:10, :] = white
+    # greens[:10, :] = white
     oranges = cm.get_cmap('Oranges', 256)(np.linspace(0, 1, 128))
-    oranges[:10, :] = white
+    # oranges[:10, :] = white
     new_colors = np.array([c for c in itertools.chain([white], reversed(oranges), greens)])
     new_cmp = ListedColormap(new_colors)
 
