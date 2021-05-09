@@ -75,12 +75,13 @@ class Task:
 
         self.TR: List[Region] = []
         self.subtask_status: Dict[int, int] = {}
-        self.canFinish = False
+        self.Finished = False
+        self.alive = True
 
     def __repr__(self):
         return "Task(id:{}, finished:{}, sensor{}, {}, {})".format(
             self.id,
-            self.canFinish,
+            self.Finished,
             self.__required_sensor.id,
             ["task"+str(t.id) for t in self.TR],
             self.timeRange
@@ -99,18 +100,29 @@ class Task:
         if self.subtask_status[reg.id] < 0:
             raise RuntimeError(f"sensing a finished task{self.id}!")
         if not any(self.subtask_status.values()):
-            self.canFinish = True
+            self.Finished = True
+        if time > self.timeRange.e:
+            self.alive = False
 
     def commitSubTaskTransaction(self, reg: Region, time):
         if time not in self.timeRange:
-            raise RuntimeError(f"error begin time {time} for Task{self.id}-subtask:reg{reg.id}")
+            print(f"message: submit Task{self.id}-reg{reg.id} overtime! time:{time}")
+            # 回滚任务状态
+            self.subtask_status[reg.id] += 1
+            if any(self.subtask_status.values()):
+                self.Finished = False
+        if time > self.timeRange.e:
+            self.alive = False
 
     def rollbackSubTaskTransaction(self, reg: Region, time):
         """
         当robot在执行感知任务过程中无法完成感知任务，则需要回滚子任务事物
         """
-        # todo 功能实现
-        pass
+        self.subtask_status[reg.id] += 1
+        if any(self.subtask_status.values()):
+            self.Finished = False
+        if time > self.timeRange.e:
+            self.alive = False
 
     def adequateSensor(self, sensor: Sensor):
         return sensor.category == self.__required_sensor.category  \

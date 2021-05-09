@@ -135,7 +135,7 @@ class MACrowdSystem:
     def __constructNewPlan(self, message, k) -> Tuple[List[Task], List[Robot]]:
         assert message.status_code != 0
         if k == len(self.robots):
-            new_tasks = list(filter(lambda t: not t.canFinish, self.tasks))
+            new_tasks = list(filter(lambda t: t.alive and not t.Finished, self.tasks))
             new_robots = list(filter(lambda robot: not robot.isBroken, self.robots))
         else:
             target_r = None
@@ -236,7 +236,7 @@ class RobotOrientAlgorithm(GreedyBaseAlgorithm):
     def allocationTasks(self):
         record_u = {}
         for task in self.tasks:
-            if task.canFinish:  # 可以完成的任务无需分配
+            if task.Finished or not task.alive:  # 可以完成的任务无需分配或已无法分配
                 continue
             for reg in task.TR:
                 if task.subtask_status[reg.id] == 0:  # 可以完成的子任务无需分配
@@ -279,7 +279,7 @@ class RobotOrientAlgorithm(GreedyBaseAlgorithm):
 
             # 更新该机器人与其他任务的$\Delta U$
             for task in self.tasks:
-                if task.canFinish:
+                if task.Finished or not task.alive:
                     continue
                 for reg in task.TR:
                     if task.subtask_status[reg.id] == 0:
@@ -298,7 +298,7 @@ class TaskOrientAlgorithm(GreedyBaseAlgorithm):
     def allocationTasks(self):
         task_in_reg = {}
         for task in self.tasks:
-            if task.canFinish:
+            if task.Finished or not task.alive:
                 continue
             for reg in task.TR:
                 if task.subtask_status[reg.id] == 0:
