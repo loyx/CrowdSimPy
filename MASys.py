@@ -101,7 +101,7 @@ class MACrowdSystem:
                 self.__base_algorithm.new_allocationPlan(new_tasks, new_robots, self.senseMap)
                 self.__base_algorithm.allocationTasks()
 
-                # print 修复结构
+                # print 修复结果
                 cov = self.__base_algorithm.totalCov()
                 r_dis = self.__base_algorithm.robotDis()
                 print("### MASys: finished allocation tasks ###")
@@ -118,10 +118,15 @@ class MACrowdSystem:
             r.executeMissions()
         message = yield
         while True:
-            self.senseMap.update(message.region, message.real_time, message.robot)
-            if message.status_code == 0:
+            if message.status_code == 0 or message.status_code == 2:
+                self.senseMap.update(message.region, message.real_time, message.robot)
                 if self.senseMap.update_ratio >= 0.8:
                     return message
+            elif message.status_code == 3:
+                # 当机器人无法感知某区域时, 我们将完成时间设置为一个非常大的数。
+                # 这样感知图中该点的表现会很差
+                self.senseMap.update(message.region, self.sense_time.len**2, message.robot)
+                return message
             else:
                 return message
             message = yield FeedBack(0)

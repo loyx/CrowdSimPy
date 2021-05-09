@@ -105,12 +105,13 @@ class Simulator:
                 print("start moving")
                 feed_back = FeedBack(0)
             elif robot.state == robot.movingState:
+                task_reg = robot.current_task_region
                 if self.realWorld.canSense(robot):
-                    print("can sense this reg")
+                    print(f"can sense reg{task_reg.id}")
                     robot.sense(sim_time)
                     feed_back = FeedBack(0)
                 else:
-                    print("cannot sense this reg!")
+                    print(f"cannot sense reg{task_reg.id}!")
                     message = Message(3, robot.id, robot, robot.current_region, sim_time)
                     feed_back: FeedBack = sim_sys.send(message)
             elif robot.state == robot.sensingState:
