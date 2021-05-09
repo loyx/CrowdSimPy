@@ -1,3 +1,5 @@
+import itertools
+
 import matplotlib.pyplot as plt
 import matplotlib as mpl
 from matplotlib import colors, cm
@@ -104,10 +106,17 @@ def pltSenseMap(sense_map):
     mz = np.array(z).reshape(mx.shape)
 
     # pc = ax.pcolormesh(mx, my, mz, shading='auto')
-    new_colors = cm.get_cmap('Greens', 256)(np.linspace(0, 1, 256))
+    greens = cm.get_cmap('Greens', 256)(np.linspace(0, 1, 127))
     white = np.array([1, 1, 1, 1])
-    new_colors[:20, :] = white
+    greens[:10, :] = white
+    oranges = cm.get_cmap('Oranges', 256)(np.linspace(0, 1, 128))
+    oranges[:10, :] = white
+    new_colors = np.array([c for c in itertools.chain([white], reversed(oranges), greens)])
     new_cmp = ListedColormap(new_colors)
-    pc = ax.contourf(mx, my, mz, cmap=new_cmp, vmin=mz.min(), vmax=mz.max() * 1.5)
+
+    min_z, max_z = mz.min(), mz.max()
+    z_padding = (max_z - min_z)/2
+    pc = ax.contourf(mx, my, mz, cmap=new_cmp, levels=256, vmin=min_z-z_padding, vmax=mz.max()+z_padding)
+    # pc = ax.contourf(mx, my, mz, cmap=new_cmp, levels=256, vmin=mz.min(), vmax=mz.max(), alpha=0.5)
     fig.colorbar(pc, ax=ax)
     plt.show()
