@@ -1,5 +1,6 @@
 import operator
 import queue
+import random
 from abc import ABC, abstractmethod
 from functools import reduce
 from operator import attrgetter, methodcaller
@@ -280,10 +281,7 @@ class RobotOrientAlgorithm(GreedyBaseAlgorithm):
             # 分配任务
             robot_star.assignTask(reg, task, sensor)
             self.allocationPlan[task.id, reg.id, robot_star.id] = 1
-            try:
-                self.sampleRecord[task.id, reg.id] += 1
-            except KeyError:
-                self.sampleRecord[task.id, reg.id] = 1
+            self.sampleRecord[task.id, reg.id] = self.sampleRecord.get((task.id, reg.id), 0) + 1
 
             # 清除该记录
             del record_u[task, reg, robot_star]
@@ -336,3 +334,37 @@ class TaskOrientAlgorithm(GreedyBaseAlgorithm):
                     r_max.assignTask(reg, task, s_select)
                     ap = (task.id, reg.id, r_max.id)
                     self.allocationPlan[ap] = self.allocationPlan.get(ap, 0) + 1
+
+
+class RandomAlgorithm(BaseAlgorithm):
+
+    def allocationTasks(self):
+        subtasks = {
+            (task, reg): self.GAMMA
+            for task in self.tasks if not task.Finished and task.alive
+            for reg in task.TR if task.subtask_status[reg.id] != 0
+        }
+        op_robots = list(self.robots)
+        while len(subtasks):
+            # 随机选择一个任务
+            key = random.choice(list(subtasks.keys()))
+            if subtasks[key] > 0:
+                subtasks[key] -= 1
+                a_task, a_reg = key
+
+                # 随机选择robot
+                random.shuffle(op_robots)
+                for robot in op_robots:
+                    finish_time, select_sensor = min(robot.possiblePlan(a_reg, a_task))
+                    if finish_time not in a_task.timeRange or not select_sensor:
+                        continue
+                    robot.assignTask(a_reg, a_task, select_sensor)
+                    self.allocationPlan[a_task.id, a_reg.id, robot.id] = 1
+                    self.sampleRecord[a_task.id, a_reg.id] = self.sampleRecord.get((a_task.id, a_reg.id), 0) + 1
+                    break
+                else:
+                    # 如无合适的机器人，则不分配该任务
+                    del subtasks[key]
+            else:
+                # 若过于采样要求，则去除该记录
+                del subtasks[key]
