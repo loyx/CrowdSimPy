@@ -41,7 +41,10 @@ def physicalRobot(robot: Robot, start_time=0):
         # 同时，我们应当假设idle，planing状态不花费时间
 
         time = yield Event(time, robot, "start sensing")
-        assert robot.state == robot.sensingState
+        if time is None:
+            assert robot.state == robot.movingState or robot.state == robot.idleState
+        else:
+            assert robot.state == robot.sensingState
         # robot.sense()  # robot到到达目标地点，开始感知数据
         # 返回SensingState Robot，有Simulator估计Sensing时间
 
@@ -130,7 +133,12 @@ class Simulator:
             if feed_back.status_code == 0 or feed_back.status_code == 2:  # 正常操作 或 跳过操作
 
                 if feed_back.status_code == 2:
+                    # 机器人跳过该任务
                     robot.skipSense(sim_time)
+                    # 机器人协程跳过该阶段
+                    skip_time_flag = None
+                    active_p_robot = self.p_robots[robot.id]
+                    active_p_robot.send(skip_time_flag)
 
                 next_time = sim_time + self.realWorld.compute_duration(robot)
                 active_p_robot = self.p_robots[robot.id]
