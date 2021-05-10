@@ -29,7 +29,7 @@ class SenseMap:
                  time_slots,
                  robot_categories,
                  plt_times=10,
-                 pho=0.1,
+                 pho=0.05,
                  sigma_noise=0.03,
                  kappa=0.3):
         self.size = map_size
@@ -39,7 +39,7 @@ class SenseMap:
         self.RobotCategories: List[RobotCategory] = robot_categories
         self.cellNum = self.size[0] * self.size[1] * self.size[2]
 
-        self.area_max_dist = (area_size[0]**2 + area_size[1] ** 2)**0.5
+        self.area_max_dist = (area_size[0] ** 2 + area_size[1] ** 2) ** 0.5
 
         self.__map: Dict[MapPoint, tuple] = {}
         self.__prior_map: Dict[MapPoint, int] = {
@@ -100,7 +100,7 @@ class SenseMap:
     """ senseMap action """
 
     def beginUpdating(self):
-        print(" "*25, "-"*10, "SenseMap: init", "-"*10)
+        print(" " * 25, "-" * 10, "SenseMap: init", "-" * 10)
         old_values = self.__prior_map.values()
         p_range = max(old_values) - min(old_values)
         if p_range == 0:
@@ -114,7 +114,7 @@ class SenseMap:
         pltSenseMap(self)
 
     def update(self, reg: Region, rt: float, r: Robot, fatal=False):
-        print(" "*25, "-"*10, "SenseMap: updating", "-"*10)
+        print(" " * 25, "-" * 10, "SenseMap: updating", "-" * 10)
         t_ideal = r.C.intraD(reg) / r.C.v
 
         if fatal:
@@ -178,12 +178,14 @@ class SenseMap:
     # 注意：lru_cache需要足够大才能优化性能
     @functools.lru_cache(None, False)
     def __matern(self, p1: MapPoint, p2: MapPoint):
+        factor = (1, 1, 1)
         reg1, ts1, rc1 = self.Regions[p1.reg], self.TimeSlots[p1.ts], self.RobotCategories[p1.rc]
         reg2, ts2, rc2 = self.Regions[p2.reg], self.TimeSlots[p2.ts], self.RobotCategories[p2.rc]
-        d = reg1.dist(reg2) / self.area_max_dist \
-            + ts1.dist(ts2, len(self.TimeSlots)) / len(self.TimeSlots) \
-            + rc1.dissimilarity(rc2)
-        d = d / 3
+        d = factor[0] / sum(factor) * reg1.dist(reg2) / self.area_max_dist \
+            + factor[1] / sum(factor) * ts1.dist(ts2, len(self.TimeSlots)) / len(self.TimeSlots) \
+            + factor[2] / sum(factor) * rc1.dissimilarity(rc2)
+        # d = d / 32
+        assert 0 <= d <= 1
         return (1 + 2.236067977 * d / self.PHO + 5 * d * d / (3 * self.PHO * self.PHO)) * math.exp(
             -2.236067977 * d / self.PHO)
 
