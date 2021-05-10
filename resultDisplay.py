@@ -12,7 +12,7 @@ import numpy as np
 from senseArea import Point
 from robot import Robot
 
-SAVE = False
+SAVE = True
 
 
 def pltRobotPath(ax: Axes, robot: Robot, alpha=False):
@@ -31,6 +31,7 @@ def pltRobotPath(ax: Axes, robot: Robot, alpha=False):
 
 
 def pltMASys(ma_sys, async_use=False, save=SAVE):
+    save = SAVE
     # style setting
     plt.figure(figsize=(10, 10), dpi=1000)
     mpl.rcParams['grid.linestyle'] = '-'
@@ -118,10 +119,10 @@ def pltSenseMap(sense_map, save=SAVE):
     new_cmp = ListedColormap(new_colors)
 
     min_z, max_z = mz.min(), mz.max()
-    z_padding = (max_z - min_z)/4
+    z_padding = (max_z - min_z) / 4
     pc = ax.contourf(mx, my, mz, cmap=new_cmp, levels=256,
                      norm=colors.CenteredNorm(),
-                     vmin=min_z-z_padding, vmax=mz.max()+z_padding)
+                     vmin=min_z - z_padding, vmax=mz.max() + z_padding)
     # pc = ax.contourf(mx, my, mz, cmap=new_cmp, levels=256, vmin=0, vmax=mz.max())
     # pc = ax.pcolormesh(mx, my, mz, cmap=new_cmp, shading='auto', norm=colors.CenteredNorm())
     fig.colorbar(pc, ax=ax)
