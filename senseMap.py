@@ -157,7 +157,8 @@ class SenseMap:
         self.__update_gaussian_process()
         self.update_times += 1
         if not self.update_times % self.plt_times:
-            pltSenseMap(self)
+            # pltSenseMap(self)
+            pass
 
         if len(self.__history) > self.__history_len:
             self.__new_update_cycle()

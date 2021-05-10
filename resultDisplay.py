@@ -1,4 +1,5 @@
 import itertools
+import time
 
 import matplotlib.pyplot as plt
 import matplotlib as mpl
@@ -10,6 +11,8 @@ import numpy as np
 
 from senseArea import Point
 from robot import Robot
+
+SAVE = False
 
 
 def pltRobotPath(ax: Axes, robot: Robot, alpha=False):
@@ -27,7 +30,7 @@ def pltRobotPath(ax: Axes, robot: Robot, alpha=False):
         return ax.plot(x, y, '-' + path_colors[robot.C.id], linewidth=0.5)
 
 
-def pltMASys(ma_sys, async_use=False, save=False):
+def pltMASys(ma_sys, async_use=False, save=SAVE):
     # style setting
     plt.figure(figsize=(10, 10), dpi=1000)
     mpl.rcParams['grid.linestyle'] = '-'
@@ -83,12 +86,11 @@ def pltMASys(ma_sys, async_use=False, save=False):
 
     # show
     if save:
-        plt.savefig("ma_sys.png", dpi=1000)
+        plt.savefig(f"ma_sys_{time.time()}.png", dpi=1000)
     plt.show()
 
 
-# def pltSenseMap(sense_map: SenseMap):
-def pltSenseMap(sense_map):
+def pltSenseMap(sense_map, save=SAVE):
     plt.figure(figsize=(10, 10), dpi=1000)
     fig, ax = plt.subplots()
     ax: Axes
@@ -123,4 +125,6 @@ def pltSenseMap(sense_map):
     # pc = ax.contourf(mx, my, mz, cmap=new_cmp, levels=256, vmin=0, vmax=mz.max())
     # pc = ax.pcolormesh(mx, my, mz, cmap=new_cmp, shading='auto', norm=colors.CenteredNorm())
     fig.colorbar(pc, ax=ax)
+    if save:
+        plt.savefig(f"senseMap_{time.time()}.png", dpi=1000)
     plt.show()
