@@ -156,7 +156,7 @@ for task in tasks:
     # print(task.TR)
 
 # real word
-real_word = RealWorld(len(Regions), (0.05, 0, 0), (1, 1, 1))
+real_word = RealWorld(len(Regions), (0, 0, 0), (1, 1, 1))
 
 # sim
 physical_robots = {r.id: physicalRobot(r) for r in all_robots}

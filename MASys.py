@@ -11,7 +11,7 @@ from senseMap import SenseMap
 from task import Task, TimeSlot, TimeCycle
 from robot import Robot, RobotCategory
 from message import Message, FeedBack
-from resultDisplay import pltMASys
+from resultDisplay import pltMASys, pltSenseMap
 
 
 class MACrowdSystem:
@@ -114,6 +114,7 @@ class MACrowdSystem:
                     next(plt)
                 except StopIteration:
                     pass
+                pltSenseMap(self.senseMap)
 
     """ utility functions """
     def actualCovAndDist(self):
@@ -233,10 +234,10 @@ class BaseAlgorithm(ABC):
 
 class GreedyBaseAlgorithm(BaseAlgorithm, ABC):
 
-    def __init__(self, area_len, gamma=1, thetas=(1, 1, 2)):
+    def __init__(self, area_len, gamma=1, thetas=(1, 1, 3)):
         super().__init__(area_len, gamma)
         self.THETAS = [t/len(thetas) for t in thetas]
-        self.LAMBDAS = (1, self.area_max_dist, 5)
+        self.LAMBDAS = (1, self.area_max_dist, 1)
 
     @abstractmethod
     def allocationTasks(self):

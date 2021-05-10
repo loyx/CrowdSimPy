@@ -89,12 +89,14 @@ def pltMASys(ma_sys, async_use=False, save=False):
 
 # def pltSenseMap(sense_map: SenseMap):
 def pltSenseMap(sense_map):
+    # return
     plt.figure(figsize=(10, 10), dpi=1000)
     fig, ax = plt.subplots()
     ax: Axes
     ax.set_aspect('equal')
     ax.xaxis.set_major_locator(MultipleLocator(1))
     ax.yaxis.set_major_locator(MultipleLocator(1))
+    ax.grid()
 
     x = np.arange(sense_map.grid_size[0])
     y = np.arange(sense_map.grid_size[1])
@@ -115,8 +117,11 @@ def pltSenseMap(sense_map):
     new_cmp = ListedColormap(new_colors)
 
     min_z, max_z = mz.min(), mz.max()
-    z_padding = (max_z - min_z)/2
-    pc = ax.contourf(mx, my, mz, cmap=new_cmp, levels=256, vmin=min_z-z_padding, vmax=mz.max()+z_padding)
-    # pc = ax.contourf(mx, my, mz, cmap=new_cmp, levels=256, vmin=mz.min(), vmax=mz.max(), alpha=0.5)
+    z_padding = (max_z - min_z)/4
+    pc = ax.contourf(mx, my, mz, cmap=new_cmp, levels=256,
+                     norm=colors.CenteredNorm(),
+                     vmin=min_z-z_padding, vmax=mz.max()+z_padding)
+    # pc = ax.contourf(mx, my, mz, cmap=new_cmp, levels=256, vmin=0, vmax=mz.max())
+    # pc = ax.pcolormesh(mx, my, mz, cmap=new_cmp, shading='auto', norm=colors.CenteredNorm())
     fig.colorbar(pc, ax=ax)
     plt.show()
