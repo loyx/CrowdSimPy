@@ -2,6 +2,8 @@ import functools
 import math
 import itertools
 import collections
+import os
+import pickle
 from typing import *
 
 import numpy as np
@@ -31,7 +33,10 @@ class SenseMap:
                  plt_times=10,
                  pho=0.05,
                  sigma_noise=0.03,
-                 kappa=0.3):
+                 kappa=0.3,
+                 map_file=None,
+                 dump_path=None
+                 ):
         self.size = map_size
         self.Regions: List[Region] = regions
         self.grid_size = grid_size
@@ -41,13 +46,19 @@ class SenseMap:
 
         self.area_max_dist = (area_size[0] ** 2 + area_size[1] ** 2) ** 0.5
 
+        self.dump_path = dump_path
+        self.dump_times = 0
         self.__map: Dict[MapPoint, tuple] = {}
-        self.__prior_map: Dict[MapPoint, int] = {
-            MapPoint(i, j, k): 0
-            for i in range(self.size[0])
-            for j in range(self.size[1])
-            for k in range(self.size[2])
-        }
+        if map_file is None:
+            self.__prior_map: Dict[MapPoint, int] = {
+                MapPoint(i, j, k): 0
+                for i in range(self.size[0])
+                for j in range(self.size[1])
+                for k in range(self.size[2])
+            }
+        else:
+            with open(map_file, 'rb') as fp:
+                self.__prior_map = pickle.load(fp)
         self.dimension = 3
 
         # plt parameters
@@ -156,11 +167,22 @@ class SenseMap:
 
     """ utility functions """
 
+    def dumpMap(self, file_path):
+        if not os.path.exists(file_path):
+            os.mkdir(file_path)
+        filename = os.path.join(file_path, f"{self.dump_times}.mapdata")
+        with open(filename, 'wb') as fp:
+            pickle.dump(self.__prior_map, fp)
+        self.dump_times += 1
+        print(" " * 25, "-" * 10, "SenseMap: dumpData", "-" * 10)
+
     def __new_update_cycle(self):
         for _, key in self.__history:
             self.__prior_map[key] = self.acquireFunction(key, self.UPDATE_KAPPA)
         self.__history.clear()
         self.update_times = 0
+        if self.dump_path is not None:
+            self.dumpMap(self.dump_path)
 
     def __update_gaussian_process(self):
         p_diff = np.array([r_perf - self.__prior_map[key] for r_perf, key in self.__history])

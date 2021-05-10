@@ -25,7 +25,9 @@ class MACrowdSystem:
                  base_algorithm,
                  self_repair=True,
                  repair_k=1,
-                 info_save=False
+                 info_save=False,
+                 map_file=None,
+                 dump_path=None
                  ):
         self.robots: List[Optional[Robot]] = []
         self.tasks: List[Optional[Task]] = []
@@ -49,7 +51,11 @@ class MACrowdSystem:
         self.RC: List[RobotCategory] = robot_categorise
 
         map_size = (len(self.Regions), len(self.TS), len(self.RC))
-        self.senseMap = SenseMap(map_size, self.Regions, self.grid_size, self.sense_area.len, self.TS, self.RC)
+        self.senseMap = SenseMap(
+            map_size, self.Regions, self.grid_size,
+            self.sense_area.len, self.TS, self.RC,
+            map_file=map_file, dump_path=dump_path
+        )
 
         self.info_save = info_save
 

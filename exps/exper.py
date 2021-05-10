@@ -12,7 +12,10 @@ from realWorld import RealWorld
 
 def exp(RANDOM_SEED, area_len, time_long, grid_granularity, time_granularity, TASK_NUMS, UV_NUMS, UAV_NUMS,
         SMALL_UV_NUMS, CANNOT_SENSE_RETE, self_repair=False, algorithmClass=RobotOrientAlgorithm,
-        no_sense_map=False):
+        no_sense_map=False,
+        map_file=None,
+        dump_path=None
+        ):
     # experiment setting
     random.seed(RANDOM_SEED)
     # senseArea
@@ -73,7 +76,9 @@ def exp(RANDOM_SEED, area_len, time_long, grid_granularity, time_granularity, TA
         [uav_category, uv_category, small_uv_category],
         # task_algorithm,
         robot_algorithm,
-        self_repair=self_repair
+        self_repair=self_repair,
+        map_file=map_file,
+        dump_path=dump_path
     )
     print("*** senseMap ***")
     print(MASys1.senseMap)

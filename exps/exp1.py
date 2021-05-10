@@ -17,7 +17,7 @@ CANNOT_SENSE_RETE = (0.1, 0.2, 0.1)
 robot_algorithm = RobotOrientAlgorithm
 
 print()
-print("="*120)
+print("="*200)
 print()
 
 cov, dist = exp(
@@ -32,7 +32,9 @@ cov, dist = exp(
     SMALL_UV_NUMS,
     CANNOT_SENSE_RETE,
     self_repair=False,
-    algorithmClass=robot_algorithm
+    algorithmClass=robot_algorithm,
+    # dump_path='./senseMapData',
+    map_file='./senseMapData/1.mapdata'
 )
 print(cov, dist)
 
@@ -40,18 +42,18 @@ print()
 print("="*120)
 print()
 
-cov, dist = exp(
-    RANDOM_SEED,
-    area_len,
-    time_long,
-    grid_granularity,
-    time_granularity,
-    TASK_NUMS,
-    UV_NUMS,
-    UAV_NUMS,
-    SMALL_UV_NUMS,
-    CANNOT_SENSE_RETE,
-    self_repair=False,
-    algorithmClass=RandomAlgorithm
-)
-print(cov, dist)
+# cov, dist = exp(
+#     RANDOM_SEED,
+#     area_len,
+#     time_long,
+#     grid_granularity,
+#     time_granularity,
+#     TASK_NUMS,
+#     UV_NUMS,
+#     UAV_NUMS,
+#     SMALL_UV_NUMS,
+#     CANNOT_SENSE_RETE,
+#     self_repair=False,
+#     algorithmClass=RandomAlgorithm,
+# )
+# print(cov, dist)

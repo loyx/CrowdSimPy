@@ -89,7 +89,6 @@ def pltMASys(ma_sys, async_use=False, save=False):
 
 # def pltSenseMap(sense_map: SenseMap):
 def pltSenseMap(sense_map):
-    return
     plt.figure(figsize=(10, 10), dpi=1000)
     fig, ax = plt.subplots()
     ax: Axes
