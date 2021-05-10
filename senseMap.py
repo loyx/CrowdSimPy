@@ -118,7 +118,7 @@ class SenseMap:
         t_ideal = r.C.intraD(reg) / r.C.v
 
         if fatal:
-            r_pref = -5
+            r_pref = -10
         else:
             # senseMap 的Update发生在robot submit之后，此时cursor指向下一个目标任务
             # 因此上一任务的实际用时为 [cursor-1] - [cursor-2]
@@ -178,12 +178,12 @@ class SenseMap:
     # 注意：lru_cache需要足够大才能优化性能
     @functools.lru_cache(None, False)
     def __matern(self, p1: MapPoint, p2: MapPoint):
-        # todo 优化：距离各部分的占比和归一化
         reg1, ts1, rc1 = self.Regions[p1.reg], self.TimeSlots[p1.ts], self.RobotCategories[p1.rc]
         reg2, ts2, rc2 = self.Regions[p2.reg], self.TimeSlots[p2.ts], self.RobotCategories[p2.rc]
         d = reg1.dist(reg2) / self.area_max_dist \
             + ts1.dist(ts2, len(self.TimeSlots)) / len(self.TimeSlots) \
             + rc1.dissimilarity(rc2)
+        d = d / 3
         return (1 + 2.236067977 * d / self.PHO + 5 * d * d / (3 * self.PHO * self.PHO)) * math.exp(
             -2.236067977 * d / self.PHO)
 

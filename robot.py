@@ -48,7 +48,7 @@ class RobotCategory(ABC):
         for key, val in self.physical_property.items():
             other_val = self.physical_property.get(key)
             dis += dataDiff(val, other_val)
-        return dis
+        return dis / (2 + len(self.physical_property))
 
     def __repr__(self):
         cls = type(self)
