@@ -96,6 +96,8 @@ class MovingState(RobotState):
         # todo 优化：实际时间一般都比理论用时长，因此此处估计的已行进距离会比实际多一点
         percentage = (time - robot.finish_time[current_cursor - 1]) / robot.ideal_time_used[current_cursor]
         robot.current_region = robot.C.getLocation(start_reg, end_reg, percentage, regions)
+        if robot.current_region is None:
+            robot.current_region = robot.current_task_region
         robot.location = robot.current_region.randomLoc()
 
         # clear plan

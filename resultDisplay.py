@@ -12,7 +12,7 @@ import numpy as np
 from senseArea import Point
 from robot import Robot
 
-SAVE = True
+SAVE = False
 
 
 def pltRobotPath(ax: Axes, robot: Robot, alpha=False):
@@ -92,6 +92,7 @@ def pltMASys(ma_sys, async_use=False, save=SAVE):
 
 
 def pltSenseMap(sense_map, save=SAVE):
+    return
     plt.figure(figsize=(10, 10), dpi=1000)
     fig, ax = plt.subplots()
     ax: Axes
