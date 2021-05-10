@@ -59,7 +59,8 @@ class SenseMap:
         self.UPDATE_KAPPA = kappa
 
         # updating attribute
-        self.__history_len = int(self.cellNum * 0.8)
+        # self.__history_len = int(self.cellNum * 0.8)
+        self.__history_len = 10
         self.__history: List[Optional[History]] = []
         self.update_times = 0
 
@@ -143,7 +144,6 @@ class SenseMap:
         # 应先记录history再更加高斯过程
         self.__history.append(History(r_pref, MapPoint(reg.id, ts.id, r.C.id)))
         self.__update_gaussian_process()
-        check = [value for value in self.__map.values() if value[0] != 0]
         self.update_times += 1
         if not self.update_times % self.plt_times:
             pltSenseMap(self)
