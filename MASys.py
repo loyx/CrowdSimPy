@@ -131,6 +131,7 @@ class MACrowdSystem:
             r.executeMissions()
         message = yield
         while True:
+            feed_back = FeedBack(0)
             if message.status_code == 0 or message.status_code == 2:
                 self.senseMap.update(message.region, message.real_time, message.robot)
                 if self.senseMap.update_ratio >= 0.8:
@@ -143,10 +144,10 @@ class MACrowdSystem:
                 if self.self_repair:
                     return message  # 进行自修复
                 else:
-                    yield FeedBack(2)  # 如果不自修，则告诉机器人跳过感知该区域
+                    feed_back = FeedBack(2)  # 如果不自修，则告诉机器人跳过感知该区域
             else:
                 return message
-            message = yield FeedBack(0)
+            message = yield feed_back
 
     def __needRepairing(self, message: Message):
         if message.status_code != 0 or self.senseMap.update_ratio > 0.8:

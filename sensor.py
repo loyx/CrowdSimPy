@@ -1,12 +1,8 @@
 
 class Sensor:
-    SC = set()
 
     def __init__(self, sid, category, accuracy, a_unit, s_range, r_unit):
-        if sid in Sensor.SC:
-            raise ValueError(f"sensor {sid} already existed")
         self.id = sid
-        Sensor.SC.add(sid)
         self.category = category
         self.accuracy = accuracy
         self.a_unit = a_unit
