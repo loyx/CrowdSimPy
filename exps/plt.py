@@ -24,11 +24,11 @@ x = range(6)
 def insertValues(datum, inters=3):
     res = [datum[0]]
     for i in range(1, len(datum)):
-        left = datum[i-1]
+        left = datum[i - 1]
         right = datum[i]
-        step = (right-left)/inters
+        step = (right - left) / inters
         for j in range(inters):
-            value = random.uniform(left + j*step, left + (j+1)*step)
+            value = random.uniform(left + j * step, left + (j + 1) * step)
             res.append(value + random.gauss(0, step if step != 0 else 0.01))
         res.append(datum[i])
     return res
@@ -59,8 +59,6 @@ plt.xlabel("相对时间")
 
 plt.legend(['Greedy+senseMap', 'Greedy', 'random'])
 # plt.savefig("exp1_cov.png", dpi=1000)
-plt.savefig("exp1_dis.png", dpi=1000)
+plt.savefig("exp1.png", dpi=1000)
 
 plt.show()
-
-

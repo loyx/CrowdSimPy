@@ -12,10 +12,12 @@ import numpy as np
 from senseArea import Point
 from robot import Robot
 
-SAVE = False
+SAVE = True
 
 
 def pltRobotPath(ax: Axes, robot: Robot, alpha=False):
+    if robot.C.id == 0:
+        return
     path_colors = ['g', 'r', 'b', 'k']
     points = []
     for index, reg in enumerate(robot.planned_path):
@@ -68,17 +70,19 @@ def pltMASys(ma_sys, async_use=False, save=SAVE):
         init_robot_loc = robot.current_region.represent_loc
         ax.plot(init_robot_loc[0], init_robot_loc[1], styles[robot.C.id], markersize=3)
         line = pltRobotPath(ax, robot)
-        if not plted[robot.C.id]:
+        if not plted[robot.C.id] and line:
             legend_line.append(line[0])
             legend_label.append(type(robot.C).__name__)
             plted[robot.C.id] = True
 
+    flag = True
     # plt tasks
     for task in ma_sys.tasks:
         for reg in task.TR:
             pos = reg.represent_loc
-            line = ax.plot(pos[0], pos[1], 'ks', markersize=1)
-            if not legend_line:
+            line = ax.plot(pos[0], pos[1], 'ko', markersize=1)
+            if flag:
+                flag = False
                 legend_line.append(line[0])
                 legend_label.append('tasks')
 
