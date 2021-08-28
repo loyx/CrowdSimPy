@@ -212,6 +212,8 @@ class SenseMap:
             + factor[1] / sum(factor) * ts1.dist(ts2, len(self.TimeSlots)) / len(self.TimeSlots) \
             + factor[2] / sum(factor) * rc1.dissimilarity(rc2)
         # d = d / 32
+        if d > 1:
+            d = 1
         assert 0 <= d <= 1
         return (1 + 2.236067977 * d / self.PHO + 5 * d * d / (3 * self.PHO * self.PHO)) * math.exp(
             -2.236067977 * d / self.PHO)

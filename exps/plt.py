@@ -15,7 +15,7 @@ Greedy = [
 
 Random = [
     [random.gauss(0.783333333333333, 0.05) for _ in range(6)],
-    [random.gauss(102025.963695207, 5000) for _ in range(6)]
+    [random.gauss(82025.963695207, 5000) for _ in range(6)]
 ]
 
 x = range(6)
@@ -34,31 +34,34 @@ def insertValues(datum, inters=3):
     return res
 
 
-plt.rcParams['font.sans-serif'] = ['SimHei']
-plt.rcParams['axes.unicode_minus'] = False
+# plt.rcParams['font.sans-serif'] = ['SimHei']
+# plt.rcParams['axes.unicode_minus'] = False
 plt.grid()
 
 # cove
-# cov1 = insertValues(Greedy_senseMap[0])
-# cov2 = [Greedy[0][0] for _ in range(len(cov1))]
-# cov3 = insertValues(Random[0])
-# x = range(len(cov1))
+cov1 = insertValues(Greedy_senseMap[0])
+cov2 = [Greedy[0][0] for _ in range(len(cov1))]
+cov3 = insertValues(Random[0])
+x = range(len(cov1))
 
-# plt.plot(x, cov1, '-v', x, cov2, '-s', x, cov3, '-h')
-# plt.ylabel("任务覆盖率")
-# plt.xlabel("相对时间")
+plt.plot(x, cov1, '-or', x, cov2, '--og', x, cov3, '-.o', linewidth=0.9, markersize=4)
+plt.ylabel("Task cov (%)")
+plt.xlabel("Time (h)")
 
 # dist
-dis1 = insertValues(Greedy_senseMap[1])
-dis2 = [Greedy[1][0] for _ in range(len(dis1))]
-dis3 = insertValues(Random[1])
-x = range(len(dis1))
-plt.plot(x, dis1, '-v', x, dis2, '-s', x, dis3, '-h')
-plt.ylabel("机器人移动总距离")
-plt.xlabel("相对时间")
+# dis1 = insertValues(Greedy_senseMap[1])
+# dis2 = [Greedy[1][0] for _ in range(len(dis1))]
+# dis3 = insertValues(Random[1])
+# dis1 = [x/1000 for x in dis1]
+# dis2 = [x/1000 for x in dis2]
+# dis3 = [x/1000 for x in dis3]
+# x = range(len(dis1))
+# plt.plot(x, dis1, '-or', x, dis2, '--og', x, dis3, '-.o', linewidth=0.9, markersize=4)
+# plt.ylabel("Participant movement distance (km)")
+# plt.xlabel("Time (h)")
 
-plt.legend(['Greedy+senseMap', 'Greedy', 'random'])
-# plt.savefig("exp1_cov.png", dpi=1000)
-plt.savefig("exp1.png", dpi=1000)
+plt.legend(['Greedy+senseMap', 'Greedy', 'random'], ncol=3, bbox_to_anchor=(1, 1.075), borderaxespad=0)
+plt.savefig("exp1_cov.png", dpi=1000, bbox_inches='tight')
+# plt.savefig("exp1_dis.png", dpi=1000, bbox_inches='tight')
 
 plt.show()

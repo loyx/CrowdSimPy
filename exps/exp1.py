@@ -34,7 +34,7 @@ cov, dist = exp(
     self_repair=False,
     algorithmClass=robot_algorithm,
     # dump_path='./senseMapData',
-    # map_file='./senseMapData/4.mapdata'
+    map_file='./senseMapData/2.mapdata',
     no_sense_map=True
 )
 print(cov, dist)

@@ -55,7 +55,7 @@ class UV(RobotCategory):
                 return reg
 
 
-class SmallUV(UV):
+class Worker(UV):
 
     def __init__(self, rc_id, category, sensors, v, physical_property, intra=1.2):
         super().__init__(rc_id, category, sensors, v, physical_property, intra)

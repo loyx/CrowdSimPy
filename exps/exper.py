@@ -3,7 +3,7 @@ import random
 from MASys import MACrowdSystem, RobotOrientAlgorithm, GreedyBaseAlgorithm
 from senseArea import SenseArea, Point
 from task import TimeRange, Task, TimeCycle
-from concreteRobot import UAV, UV, SmallUV
+from concreteRobot import UAV, UV, Worker
 from sensor import Sensor
 from robot import Robot
 from simulation import Simulator, physicalRobot
@@ -56,10 +56,10 @@ def exp(RANDOM_SEED, area_len, time_long, grid_granularity, time_granularity, TA
     uv_physical_parameters = {'length': 4000, 'width': 1700, 'height': 1400, 'weight': 1900}
     uv_category = UV(1, "uv", uv_sensor, 11.11, uv_physical_parameters)
     print(uv_category)
-    # SmallUV
+    # Worker
     small_uv_sensor = sensors
     small_uv_physical_parameters = {'length': 2000, 'width': 850, 'height': 700, 'weight': 900}
-    small_uv_category = SmallUV(2, "small uv", small_uv_sensor, 10, small_uv_physical_parameters)
+    small_uv_category = Worker(2, "worker", small_uv_sensor, 10, small_uv_physical_parameters)
     print(small_uv_category)
     print()
     # task allocation algorithm
@@ -109,7 +109,7 @@ def exp(RANDOM_SEED, area_len, time_long, grid_granularity, time_granularity, TA
     for i in range(SMALL_UV_NUMS):
         small_uv_robots.append(
             Robot(r_id_cnt := r_id_cnt + 1, small_uv_category, random_regs.pop()))
-    print("--- small uv robots ---")
+    print("--- worker robots ---")
     print(small_uv_robots)
     print()
     # register robots

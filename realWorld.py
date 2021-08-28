@@ -1,11 +1,11 @@
 import random
 
 from robot import Robot
-from concreteRobot import UV, UAV, SmallUV
+from concreteRobot import UV, UAV, Worker
 
 
 class RealWorld:
-    SIM_ROB = [UAV, UV, SmallUV]
+    SIM_ROB = [UAV, UV, Worker]
 
     def __init__(self, region_size, thresholds, thetas, moving_affect=0.2):
         rd = random.random

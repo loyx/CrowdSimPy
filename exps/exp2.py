@@ -6,7 +6,7 @@ RANDOM_SEED = 0
 UAV_NUMS = 5
 UV_NUMS = 4
 SMALL_UV_NUMS = 4
-TASK_NUMS = 80
+TASK_NUMS = 60
 
 area_len = 2_000
 grid_granularity = 100
@@ -26,7 +26,7 @@ cov, dist = exp(
     SMALL_UV_NUMS,
     CANNOT_SENSE_RETE,
     self_repair=True,
-    # algorithmClass=RobotOrientAlgorithm,
-    algorithmClass=RandomAlgorithm,
+    algorithmClass=RobotOrientAlgorithm,
+    # algorithmClass=RandomAlgorithm,
 )
 print(cov, dist)
